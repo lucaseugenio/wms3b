@@ -1,0 +1,2754 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WMS 3B</title>
+  <style>
+    :root{
+      --bg:#f5f6f8; --panel:#fff; --text:#17191c; --muted:#6b7280; --line:#e5e7eb;
+      --accent:#1f2937; --ok:#166534; --warn:#92400e; --danger:#991b1b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:#111827;color:#fff;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    header h1{margin:0;font-size:20px}
+    header small{opacity:.8}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .c3{grid-column:span 3}.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+    label{display:block;font-size:13px;font-weight:650;margin-bottom:6px}
+    input,select,button{font:inherit}
+    input,select{width:100%;padding:11px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff}
+    button{border:0;border-radius:10px;padding:11px 14px;cursor:pointer;font-weight:700}
+    button.primary{background:#111827;color:white}
+    button.secondary{background:#eef0f3;color:#111827}
+    button.danger{background:#fee2e2;color:#991b1b}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .tabs button.active{background:#111827;color:#fff}
+    .status{font-size:13px;padding:8px 10px;border-radius:9px;background:#eef0f3}
+    .status.ok{background:#dcfce7;color:#166534}.status.err{background:#fee2e2;color:#991b1b}
+    .hidden{display:none!important}
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);font-size:14px}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+    .table-wrap{overflow:auto}
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .muted{color:var(--muted);font-size:13px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+    .kpi strong{font-size:24px;display:block}
+    .login{max-width:420px;margin:40px auto}
+    .notice{border-left:4px solid #f59e0b;background:#fffbeb;padding:12px;border-radius:8px;font-size:13px}
+    @media(max-width:800px){
+      .c3,.c4,.c6,.c8{grid-column:span 12}.kpis{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:480px){.kpis{grid-template-columns:1fr}}
+    @media print{
+      @page{size:A4 portrait;margin:7mm}
+      body{background:#fff;font-size:9px}
+      header,.tabs,#globalStatus,#loginView,#sessionBox,
+      #tab-dashboard,#tab-produtos,#tab-enderecos,#tab-estoque,#tab-mapa,#tab-pedidos,#tab-conferencia,
+      #pickingControles,#pickingConfig,
+      #tab-picking>h2,#tab-picking>p{display:none!important}
+
+      #appView,#tab-picking{display:block!important}
+      #tab-picking{border:0!important;padding:0!important;margin:0!important}
+      .wrap{max-width:none;padding:0}
+      .panel{border:0;box-shadow:none}
+      .print-only{display:block!important}
+
+      #pickingResultado{margin:0!important}
+      #pickingResultado .picking-screen-meta{display:none!important}
+      #pickingResultado .picking-print-header{
+        display:flex!important;
+        justify-content:space-between;
+        align-items:flex-end;
+        gap:8px;
+        margin:0 0 4px;
+        padding-bottom:4px;
+        border-bottom:1px solid #222
+      }
+      #pickingResultado .picking-print-title{
+        font-size:13px;
+        font-weight:800;
+        white-space:nowrap
+      }
+      #pickingResultado .picking-print-info{
+        font-size:8.5px;
+        text-align:right;
+        line-height:1.25
+      }
+      #pickingResultado .picking-print-barcode{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-width:150px;
+        padding:0 6px
+      }
+      #pickingResultado .picking-print-barcode svg{
+        width:145px;
+        height:34px;
+        display:block
+      }
+
+      #pickingResultado .table-wrap{overflow:visible}
+      #pickingResultado table{
+        width:100%;
+        border-collapse:collapse;
+        font-size:8.2px;
+        line-height:1.05
+      }
+      #pickingResultado thead{display:table-header-group}
+      #pickingResultado tr{break-inside:avoid}
+      #pickingResultado th{
+        padding:2px 3px;
+        border-bottom:1px solid #333;
+        white-space:nowrap
+      }
+      #pickingResultado td{
+        padding:2px 3px;
+        border-bottom:1px solid #bbb;
+        vertical-align:middle
+      }
+      #pickingResultado .pick-tag{
+        width:58px;
+        font-weight:700;
+        white-space:nowrap
+      }
+      #pickingResultado .pick-produto{
+        width:210px;
+        font-size:7.8px;
+        line-height:1.05
+      }
+      #pickingResultado .pick-enderecos{
+        font-size:10px;
+        line-height:1.12
+      }
+      #pickingResultado .pick-enderecos .end-item{
+        display:inline;
+        margin-right:7px;
+        white-space:nowrap
+      }
+      #pickingResultado .pick-enderecos .end-principal{
+        font-size:11.5px;
+        font-weight:800
+      }
+      #pickingResultado .pick-enderecos .end-lista{
+        font-size:10px;
+        font-weight:600
+      }
+      #pickingResultado .pick-enderecos .mais-enderecos-print{
+        display:none
+      }
+      #pickingResultado .pick-enderecos .mais-enderecos-screen{
+        font-size:8px;
+        font-weight:500;
+        white-space:nowrap
+      }
+      @media print{
+        #pickingResultado .pick-enderecos .end-item:nth-child(n+6){
+          display:none!important
+        }
+        #pickingResultado .pick-enderecos .mais-enderecos-screen{
+          display:none!important
+        }
+        #pickingResultado .pick-enderecos .mais-enderecos-print{
+          display:inline!important;
+          font-size:8px;
+          font-weight:600;
+          white-space:nowrap
+        }
+      }
+      #pickingResultado .pick-caixas{
+        width:34px;
+        text-align:center;
+        font-size:10px;
+        font-weight:800
+      }
+      #pickingResultado .pick-check{
+        width:22px;
+        text-align:center;
+        font-size:12px
+      }
+      #pickingResultado .pick-pendente td{
+        font-weight:700
+      }
+      #pickingResultado .picking-print-footer{
+        display:flex!important;
+        gap:24px;
+        margin-top:10px;
+        font-size:8px
+      }
+      #pickingResultado .picking-print-footer>div{
+        flex:1;
+        border-top:1px solid #333;
+        padding-top:3px
+      }
+    }
+    .print-only{display:none}
+  
+    /* ===== V6.0 - Mobile / Tablet ===== */
+    .mobile-hide-help { display:none !important; }
+
+    .tabs{
+      overflow-x:auto;
+      flex-wrap:nowrap;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:thin;
+      gap:6px;
+      padding-bottom:4px;
+    }
+    .tabs button{
+      flex:0 0 auto;
+      min-height:42px;
+      white-space:nowrap;
+    }
+
+    .operation-bar{
+      position:sticky;
+      top:6px;
+      z-index:20;
+      background:var(--card, #fff);
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:10px;
+      box-shadow:0 4px 12px rgba(0,0,0,.06);
+    }
+
+    input, select, textarea, button{
+      min-height:44px;
+    }
+
+    input, select, textarea{
+      font-size:16px;
+    }
+
+    .table-wrap{
+      -webkit-overflow-scrolling:touch;
+    }
+
+    @media (max-width: 900px){
+      body{font-size:14px}
+      .wrap{padding:10px}
+      header{padding:10px 0}
+      header h1{font-size:20px}
+      header p{display:none}
+      .tabs{margin-bottom:10px}
+      .panel{padding:12px}
+      .grid{gap:10px}
+
+      .c2,.c3,.c4,.c5,.c6,.c7,.c8,.c9,.c10,.c11,.c12{
+        grid-column:1 / -1 !important;
+      }
+
+      .row-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+      }
+      .row-actions button{
+        flex:1 1 160px;
+      }
+
+      table{font-size:12px}
+      th,td{padding:7px 6px}
+
+      #tab-pedidos > p,
+      #tab-picking > p,
+      #tab-transferencia > p,
+      #tab-mapa > p{
+        display:none;
+      }
+
+      #pickingControles{
+        position:sticky;
+        top:6px;
+        z-index:18;
+        background:#fff;
+        padding:8px;
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        margin-bottom:10px;
+      }
+
+      #confAreaLeitura{
+        position:sticky;
+        top:6px;
+        z-index:19;
+        background:#fff;
+      }
+
+      #confAreaLeitura .panel{
+        box-shadow:0 4px 12px rgba(0,0,0,.06);
+      }
+
+      #confEan{
+        font-size:22px !important;
+        min-height:54px;
+      }
+
+      #transfOrigem,
+      #transfDestino,
+      #transfEan{
+        min-height:50px;
+        font-size:18px;
+      }
+
+      #transfQtd{
+        min-height:50px;
+        font-size:18px;
+      }
+
+      #produtoEnderecoResumo{
+        padding:10px !important;
+      }
+
+      .kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px !important;
+      }
+
+      .kpi{
+        padding:10px !important;
+      }
+
+      .kpi .value{
+        font-size:22px !important;
+      }
+    }
+
+    @media (max-width: 560px){
+      .wrap{padding:8px}
+      header h1{font-size:18px}
+      .tabs button{
+        padding:8px 10px;
+        font-size:13px;
+        min-height:40px;
+      }
+
+      .panel{
+        padding:10px;
+        border-radius:10px;
+      }
+
+      h2{font-size:18px;margin-bottom:10px}
+      h3{font-size:16px}
+
+      .kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      }
+
+      .status{
+        font-size:12px;
+        padding:8px;
+      }
+
+      #pickingResultado .table-wrap,
+      #confResultado .table-wrap,
+      #estoqueTbody,
+      #pedidosTbody{
+        font-size:11px;
+      }
+
+      #pickingResultado table th:nth-child(3),
+      #pickingResultado table td:nth-child(3){
+        min-width:170px;
+      }
+
+      #confResultado table th:nth-child(2),
+      #confResultado table td:nth-child(2){
+        min-width:170px;
+      }
+
+      #pedidoCsvPreview table th:nth-child(2),
+      #pedidoCsvPreview table td:nth-child(2){
+        min-width:170px;
+      }
+
+      #globalStatus{
+        margin:6px 0;
+      }
+    }
+
+  
+    /* ===== V7.1 - câmera em tela cheia + feedback visual ===== */
+    #confCameraBox.camera-fullscreen{
+      position:fixed !important;
+      inset:0 !important;
+      z-index:9998 !important;
+      margin:0 !important;
+      padding:0 !important;
+      background:#000 !important;
+      display:flex !important;
+      align-items:stretch !important;
+      justify-content:center !important;
+    }
+
+    #confCameraBox.camera-fullscreen #confCameraReader{
+      width:100% !important;
+      max-width:none !important;
+      height:100% !important;
+      margin:0 !important;
+      border-radius:0 !important;
+      overflow:hidden !important;
+      background:#000 !important;
+    }
+
+    #confCameraBox.camera-fullscreen #confCameraReader video{
+      width:100% !important;
+      height:100% !important;
+      object-fit:cover !important;
+    }
+
+    #confCameraCloseFloating{
+      position:fixed;
+      top:14px;
+      right:14px;
+      z-index:10001;
+      min-width:48px;
+      min-height:48px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.45);
+      background:rgba(0,0,0,.62);
+      color:#fff;
+      font-size:22px;
+      font-weight:800;
+      padding:8px 14px;
+      box-shadow:0 4px 18px rgba(0,0,0,.35);
+    }
+
+    #confCameraOverlay{
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .12s ease;
+      padding:20px;
+    }
+
+    #confCameraOverlay.ativo{
+      opacity:1;
+    }
+
+    #confCameraOverlay .camera-overlay-card{
+      width:min(92vw,520px);
+      border-radius:20px;
+      padding:24px 20px;
+      text-align:center;
+      box-shadow:0 10px 40px rgba(0,0,0,.40);
+      border:3px solid rgba(255,255,255,.75);
+      color:#fff;
+      backdrop-filter:blur(3px);
+    }
+
+    #confCameraOverlay.ok .camera-overlay-card{
+      background:rgba(22,163,74,.94);
+    }
+
+    #confCameraOverlay.erro .camera-overlay-card{
+      background:rgba(185,28,28,.95);
+    }
+
+    #confCameraOverlay .camera-overlay-titulo{
+      font-size:34px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:.04em;
+      margin-bottom:10px;
+    }
+
+    #confCameraOverlay .camera-overlay-codigo{
+      font-size:24px;
+      line-height:1.2;
+      font-weight:800;
+      word-break:break-all;
+    }
+
+    @media (max-width:560px){
+      #confCameraOverlay .camera-overlay-titulo{font-size:30px}
+      #confCameraOverlay .camera-overlay-codigo{font-size:21px}
+    }
+
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>WMS 3B</h1>
+    <small>Estoque • Endereçamento • Pedidos • Conferência</small>
+  </div>
+  <div id="sessionBox" class="hidden">
+    <span id="userEmail" style="margin-right:10px"></span>
+    <button id="logoutBtn" class="secondary">Sair</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="loginView" class="panel login">
+    <h2 style="margin-top:0">Entrar</h2>
+    <p class="muted">Use um usuário criado no Supabase Authentication.</p>
+    <form id="loginForm" action="javascript:void(0)" novalidate>
+      <div style="margin-bottom:12px">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required autocomplete="username">
+      </div>
+      <div style="margin-bottom:14px">
+        <label for="password">Senha</label>
+        <input id="password" type="password" required autocomplete="current-password">
+      </div>
+      <button class="primary" type="submit" style="width:100%">Entrar</button>
+    </form>
+    <p id="loginMsg" class="muted"></p>
+  </section>
+
+  <section id="appView" class="hidden">
+    <div class="tabs">
+      <button data-tab="dashboard" class="secondary active">Resumo</button>
+      <button data-tab="produtos" class="secondary">Produtos</button>
+      <button data-tab="enderecos" class="secondary">Endereços</button>
+      <button data-tab="estoque" class="secondary">Estoque</button>
+      <button data-tab="inventario" class="secondary">Inventário</button>
+      <button data-tab="transferencia" class="secondary">Transferência</button>
+      <button data-tab="mapa" class="secondary">Mapa físico</button>
+      <button data-tab="picking" class="secondary">Picking</button>
+      <button data-tab="pedidos" class="secondary">Pedidos</button>
+      <button data-tab="conferencia" class="secondary">Conferência</button>
+    </div>
+
+    <div id="globalStatus" class="status">Pronto.</div>
+
+    <section id="tab-dashboard" class="tab panel">
+      <h2>Resumo operacional</h2>
+      <div class="kpis">
+        <div class="kpi"><span class="muted">Produtos</span><strong id="kpiProdutos">—</strong></div>
+        <div class="kpi"><span class="muted">Endereços</span><strong id="kpiEnderecos">—</strong></div>
+        <div class="kpi"><span class="muted">Caixas em estoque</span><strong id="kpiEstoque">—</strong></div>
+        <div class="kpi"><span class="muted">Pedidos abertos</span><strong id="kpiPedidos">—</strong></div>
+      </div>
+    </section>
+
+    <section id="tab-produtos" class="tab panel hidden">
+      <h2>Produtos</h2>
+      <form id="produtoForm" class="grid">
+        <div class="c3"><label>TAG</label><input id="produtoTag" required maxlength="20"></div>
+        <div class="c6"><label>Descrição</label><input id="produtoDescricao" required></div>
+        <div class="c3"><label>EAN</label><input id="produtoEan" required inputmode="numeric"></div>
+        <div class="c12"><button class="primary" type="submit">Cadastrar produto</button></div>
+      </form>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+
+      <h3>Importação em massa por CSV</h3>
+      <p class="muted">Formato: ACAO;TAG;DESCRICAO;EAN. O arquivo é validado antes de qualquer gravação.</p>
+      <div class="grid">
+        <div class="c8">
+          <label for="produtoCsv">Arquivo CSV</label>
+          <input id="produtoCsv" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="c4" style="align-self:end">
+          <button id="importarCsvBtn" class="primary" type="button" style="width:100%" disabled>Importar arquivo</button>
+        </div>
+      </div>
+      <div id="csvResumo" class="status" style="margin-top:12px">Nenhum arquivo selecionado.</div>
+      <div id="csvPreview" class="table-wrap hidden" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Ação</th><th>TAG</th><th>Descrição</th><th>EAN</th><th>Validação</th></tr></thead>
+          <tbody id="csvPreviewTbody"></tbody>
+        </table>
+      </div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+
+      <div class="grid">
+        <div class="c8"><input id="produtoBusca" placeholder="Buscar por TAG, descrição ou EAN"></div>
+        <div class="c4"><button id="recarregarProdutos" class="secondary" style="width:100%">Atualizar lista</button></div>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table><thead><tr><th>TAG</th><th>Descrição</th><th>EAN</th><th>Status</th></tr></thead><tbody id="produtosTbody"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-enderecos" class="tab panel hidden">
+      <h2>Endereços</h2>
+      <form id="enderecoForm" class="grid">
+        <div class="c4"><label>Código</label><input id="enderecoCodigo" required placeholder="Ex.: A-01-02"></div>
+        <div class="c8"><label>Descrição</label><input id="enderecoDescricao" placeholder="Opcional"></div>
+        <div class="c12"><button class="primary" type="submit">Cadastrar endereço</button></div>
+      </form>
+      <div class="table-wrap" style="margin-top:18px">
+        <table><thead><tr><th>Código</th><th>Descrição</th><th>Status</th></tr></thead><tbody id="enderecosTbody"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-estoque" class="tab panel hidden">
+      <h2>Estoque por endereço</h2>
+      <div class="grid">
+        <div class="c8"><input id="estoqueBusca" placeholder="Buscar por TAG, produto ou endereço"></div>
+        <div class="c4"><button id="recarregarEstoque" class="secondary" style="width:100%">Atualizar estoque</button></div>
+      </div>
+
+      <div id="produtoEnderecoResumo" class="panel" style="margin-top:14px;background:#fafafa">
+        <strong>Consulta rápida por TAG</strong>
+        <div class="grid" style="margin-top:10px">
+          <div class="c8"><input id="consultaTag" placeholder="Digite uma TAG, ex.: 202334"></div>
+          <div class="c4"><button id="consultarTagBtn" class="primary" style="width:100%">Consultar endereços</button></div>
+        </div>
+        <div id="consultaTagResultado" style="margin-top:12px" class="muted">Digite uma TAG para visualizar todos os locais cadastrados.</div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:12px">
+        <table><thead><tr><th>TAG</th><th>Produto</th><th>Endereço</th><th>Rua</th><th>Coluna</th><th>Linha</th><th>Qtd.</th></tr></thead><tbody id="estoqueTbody"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-inventario" class="tab panel hidden">
+      <h2>Inventário</h2>
+
+      <div class="panel" style="background:#fafafa">
+        <div class="grid">
+          <div class="c8">
+            <label for="inventarioCsv">Arquivo CSV</label>
+            <input id="inventarioCsv" type="file" accept=".csv,text/csv">
+          </div>
+          <div class="c4" style="align-self:end">
+            <button id="aplicarInventarioBtn" class="primary" type="button" style="width:100%" disabled>Aplicar inventário</button>
+          </div>
+        </div>
+
+        <div id="inventarioResumo" class="status" style="margin-top:12px">
+          Nenhum arquivo selecionado.
+        </div>
+      </div>
+
+      <div id="inventarioPreview" class="table-wrap hidden" style="margin-top:14px">
+        <table>
+          <thead>
+            <tr>
+              <th>TAG</th>
+              <th>Produto</th>
+              <th>Endereço</th>
+              <th>Sistema</th>
+              <th>Contado</th>
+              <th>Diferença</th>
+              <th>Validação</th>
+            </tr>
+          </thead>
+          <tbody id="inventarioPreviewTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-transferencia" class="tab panel hidden">
+      <h2>Transferência de estoque</h2>
+
+
+      <div class="panel operation-bar" style="background:#fafafa">
+        <div class="grid">
+          <div class="c6">
+            <label>Endereço de origem</label>
+            <input id="transfOrigem" autocomplete="off" placeholder="Origem: 147A">
+          </div>
+          <div class="c6">
+            <label>Endereço de destino</label>
+            <input id="transfDestino" autocomplete="off" placeholder="Destino: 147D">
+          </div>
+
+          <div class="c8">
+            <label>EAN do item</label>
+            <input id="transfEan" inputmode="numeric" autocomplete="off"
+                   placeholder="EAN da caixa"
+                   style="font-size:20px;font-weight:700">
+          </div>
+          <div class="c4">
+            <label>Quantidade de caixas</label>
+            <input id="transfQtd" type="number" min="1" step="1" value="1">
+          </div>
+        </div>
+
+        <div class="row-actions" style="margin-top:12px">
+          <button id="executarTransferenciaBtn" class="primary" type="button">Transferir</button>
+          <button id="limparTransferenciaBtn" class="secondary" type="button">Limpar</button>
+        </div>
+
+        <div id="transfFeedback" class="status" style="margin-top:12px">
+          Informe origem, destino e item.
+        </div>
+      </div>
+
+      <div id="transfResumo" style="margin-top:14px"></div>
+    </section>
+
+    <section id="tab-mapa" class="tab panel hidden">
+      <h2>Mapa físico do estoque</h2>
+      <p class="muted">13 ruas × 22 colunas × 4 linhas, com colunas globais de 001 a 286. A Rua 13 usa as colunas 265 a 286. Produtos ainda não remapeados aparecem como sem endereço. Clique em uma posição ocupada para ver a TAG.</p>
+      <div class="grid">
+        <div class="c4">
+          <label>Rua</label>
+          <select id="mapaRua"></select>
+        </div>
+        <div class="c4">
+          <label>Linha</label>
+          <select id="mapaLinha">
+            <option value="TODAS">Todas</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div class="c4" style="align-self:end">
+          <button id="recarregarMapa" class="secondary" style="width:100%">Atualizar mapa</button>
+        </div>
+      </div>
+      <div id="mapaLegenda" class="muted" style="margin-top:12px"></div>
+      <div id="mapaGrid" style="display:grid;grid-template-columns:repeat(11,minmax(70px,1fr));gap:8px;margin-top:14px;overflow:auto"></div>
+      <div id="mapaDetalhe" class="status" style="margin-top:14px">Selecione uma posição para ver os detalhes.</div>
+    </section>
+
+    <section id="tab-picking" class="tab panel hidden">
+      <h2>Picking</h2>
+
+
+      <div id="pickingControles" class="operation-bar">
+
+        <div class="grid">
+          <div class="c8">
+            <label>Número do pedido</label>
+            <input id="pickingPedido" inputmode="numeric" autocomplete="off" placeholder="Nº do pedido">
+          </div>
+          <div class="c4" style="align-self:end">
+            <button id="montarPickingBtn" class="primary" style="width:100%">Montar picking</button>
+          </div>
+        </div>
+        <div class="row-actions" style="margin-top:10px">
+          <button id="imprimirPickingBtn" class="secondary" type="button">Imprimir lista de picking</button>
+        </div>
+      </div>
+
+      <div id="pickingConfig" class="status" style="margin-top:12px">Carregando configuração...</div>
+      <div id="pickingResultado" style="margin-top:14px"></div>
+    </section>
+
+    <section id="tab-pedidos" class="tab panel hidden">
+      <h2>Pedidos</h2>
+
+
+        <div class="panel" style="background:#fafafa">
+          <h3 style="margin-top:0">Importar pedido por CSV</h3>
+
+          <div class="grid">
+            <div class="c8">
+              <label for="pedidoCsv">Arquivo do pedido</label>
+              <input id="pedidoCsv" type="file" accept=".csv,text/csv">
+            </div>
+            <div class="c4" style="align-self:end">
+              <button id="importarPedidoCsvBtn" class="primary" type="button" style="width:100%" disabled>Importar pedido</button>
+            </div>
+          </div>
+          <div id="pedidoCsvResumo" class="status" style="margin-top:12px">Nenhum arquivo selecionado.</div>
+          <div id="pedidoCsvPreview" class="table-wrap hidden" style="margin-top:12px">
+            <table>
+              <thead><tr><th>TAG</th><th>Produto</th><th>Caixas</th><th>Validação</th></tr></thead>
+              <tbody id="pedidoCsvPreviewTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+
+      <p class="muted">Nesta V1 a consulta já está ligada ao banco. A importação CSV será o próximo incremento.</p>
+      <div class="grid">
+        <div class="c8"><input id="pedidoBusca" placeholder="Buscar número do pedido ou cliente"></div>
+        <div class="c4"><button id="recarregarPedidos" class="secondary" style="width:100%">Atualizar pedidos</button></div>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table><thead><tr><th>Pedido</th><th>Cliente</th><th>Cidade/UF</th><th>Status</th><th>Criado</th><th>Ação</th></tr></thead><tbody id="pedidosTbody"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-conferencia" class="tab panel hidden">
+      <h2>Conferência</h2>
+
+
+      <div class="grid" style="margin-top:16px">
+        <div class="c8">
+          <label>Número do pedido</label>
+          <input id="confPedido" inputmode="numeric" autocomplete="off" placeholder="Nº do pedido">
+        </div>
+        <div class="c4" style="align-self:end">
+          <button id="abrirPedidoBtn" class="primary" type="button" style="width:100%">Abrir pedido</button>
+        </div>
+      </div>
+
+      <div id="confAreaLeitura" class="hidden operation-bar" style="margin-top:12px">
+        <div class="panel" style="background:#fafafa">
+          <div class="grid">
+            <div class="c8">
+              <label for="confEan"><strong>EAN da caixa</strong></label>
+              <input id="confEan"
+                     inputmode="numeric"
+                     autocomplete="off"
+                     placeholder="EAN"
+                     style="font-size:22px;font-weight:700;letter-spacing:.04em">
+            </div>
+            <div class="c4" style="align-self:end">
+              <button id="registrarLeituraBtn" class="primary" type="button" style="width:100%">Registrar leitura</button>
+            </div>
+          </div>
+          <div class="row-actions" style="margin-top:10px">
+            <button id="abrirCameraConfBtn" class="secondary" type="button">📷 Ler com câmera</button>
+            <button id="fecharCameraConfBtn" class="secondary hidden" type="button">Fechar câmera</button>
+            <button id="resetarConferenciaBtn" class="secondary" type="button">Resetar conferência</button>
+          </div>
+          <div id="confCameraBox" class="hidden" style="margin-top:10px">
+            <div id="confCameraReader" style="width:100%;max-width:520px;margin:0 auto;border-radius:12px;overflow:hidden"></div>
+          </div>
+
+          <button id="confCameraCloseFloating" class="hidden" type="button" aria-label="Fechar câmera">✕</button>
+
+          <div id="confCameraOverlay" class="hidden" aria-live="assertive">
+            <div class="camera-overlay-card">
+              <div id="confCameraOverlayTitulo" class="camera-overlay-titulo"></div>
+              <div id="confCameraOverlayCodigo" class="camera-overlay-codigo"></div>
+            </div>
+          </div>
+          <div id="confFeedback" class="status" style="margin-top:12px">Aguardando leitura.</div>
+        </div>
+      </div>
+
+      <div id="confResultado" style="margin-top:16px"></div>
+    </section>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(() => {
+  const SUPABASE_URL = 'https://ydpwepnyljerlqokpnmb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ODAVkjaolIsoIblyn7pdVw_fvV5gU0B';
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      storageKey: 'wms3b-auth'
+    }
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const state = { produtos: [], enderecos: [], estoque: [], pedidos: [], importRows: [], pedidoImportRows: [], inventarioRows: [], configuracoes: {}, confPedidoAtual: null, confItens: [], confLeituras: [], confScanner: null, confCameraAtiva: false, confUltimoCodigo: '', confUltimaLeituraCamera: 0, confCameraProcessando: false, confCameraBloqueadaAte: 0, confAudioCtx: null, confOverlayTimer: null };
+
+  function msg(text, type='') {
+    const el = $('globalStatus');
+    el.textContent = text;
+    el.className = 'status' + (type ? ' ' + type : '');
+  }
+  const fmtDate = v => v ? new Date(v).toLocaleString('pt-BR') : '—';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function showApp(session){
+    const logged = !!session;
+    $('loginView').classList.toggle('hidden', logged);
+    $('appView').classList.toggle('hidden', !logged);
+    $('sessionBox').classList.toggle('hidden', !logged);
+    $('userEmail').textContent = session?.user?.email || '';
+    if (logged) refreshAll();
+  }
+
+  async function refreshAll(){
+    msg('Atualizando dados...');
+    try {
+      await Promise.allSettled([
+        loadProdutos(),
+        loadEnderecos(),
+        loadEstoque(),
+        loadPedidos(),
+        loadConfiguracoes()
+      ]);
+      updateKpis();
+      msg('Dados atualizados.', 'ok');
+    } catch (err) {
+      console.error('Falha ao atualizar resumo:', err);
+      updateKpis();
+      msg('Dados carregados parcialmente. Verifique o console para detalhes.', 'err');
+    }
+  }
+
+  async function loadProdutos(){
+    const { data, error } = await client.from('vw_produtos_ean').select('*').order('tag');
+    if (error) { console.error(error); msg('Erro ao carregar produtos: ' + error.message, 'err'); return; }
+    state.produtos = data || [];
+    renderProdutos();
+  }
+  async function loadEnderecos(){
+    const lote = 1000;
+    let inicio = 0;
+    let todos = [];
+
+    while(true){
+      const { data, error } = await client
+        .from('enderecos')
+        .select('*')
+        .order('codigo')
+        .range(inicio, inicio + lote - 1);
+
+      if (error) {
+        console.error(error);
+        msg('Erro ao carregar endereços: ' + error.message, 'err');
+        return;
+      }
+
+      const atual = data || [];
+      todos = todos.concat(atual);
+
+      if (atual.length < lote) break;
+      inicio += lote;
+    }
+
+    state.enderecos = todos;
+    renderEnderecos();
+  }
+  async function loadEstoque(){
+    const lote = 1000;
+    let inicio = 0;
+    let todos = [];
+
+    while(true){
+      const { data, error } = await client
+        .from('estoque_local')
+        .select('quantidade,atualizado_em,produtos!inner(id,tag,descricao,ativo),enderecos!inner(id,codigo,codigo_curto,tipo,rua,coluna,linha,posicao,descricao,ativo)')
+        .order('atualizado_em', {ascending:false})
+        .range(inicio, inicio + lote - 1);
+
+      if (error) {
+        console.error(error);
+        msg('Erro ao carregar estoque: ' + error.message, 'err');
+        return;
+      }
+
+      const atual = data || [];
+      todos = todos.concat(atual);
+
+      if (atual.length < lote) break;
+      inicio += lote;
+    }
+
+    state.estoque = todos.map(x => ({
+      produto_id: x.produtos?.id,
+      tag: x.produtos?.tag,
+      produto: x.produtos?.descricao,
+      endereco_id: x.enderecos?.id,
+      endereco: x.enderecos?.codigo,
+      endereco_curto: x.enderecos?.codigo_curto || x.enderecos?.codigo,
+      tipo_endereco: x.enderecos?.tipo || 'PORTA_PALETE',
+      rua: x.enderecos?.rua,
+      coluna: x.enderecos?.coluna,
+      linha: x.enderecos?.linha,
+      posicao: x.enderecos?.posicao,
+      quantidade: x.quantidade,
+      atualizado_em: x.atualizado_em
+    }));
+
+    renderEstoque();
+    renderMapa();
+  }
+  async function loadPedidos(){
+    const { data, error } = await client.from('pedidos').select('*').order('criado_em', {ascending:false});
+    if (error) { console.error(error); msg('Erro ao carregar pedidos: ' + error.message, 'err'); return; }
+    state.pedidos = data || [];
+    renderPedidos();
+  }
+  async function loadConfiguracoes(){
+    const { data, error } = await client.from('configuracoes').select('chave,valor');
+    if (error) {
+      console.warn('Configurações não carregadas:', error.message);
+      return;
+    }
+    state.configuracoes = Object.fromEntries((data||[]).map(x => [x.chave, x.valor]));
+    renderPickingConfig();
+  }
+
+  function renderProdutos(){
+    const q = $('produtoBusca').value.trim().toLowerCase();
+    const rows = state.produtos.filter(x => [x.tag,x.descricao,x.ean].some(v => String(v??'').toLowerCase().includes(q)));
+    $('produtosTbody').innerHTML = rows.map(x => `<tr><td><strong>${esc(x.tag)}</strong></td><td>${esc(x.descricao)}</td><td>${esc(x.ean||'—')}</td><td>${x.ativo?'Ativo':'Inativo'}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nenhum produto encontrado.</td></tr>';
+  }
+  function renderEnderecos(){
+    $('enderecosTbody').innerHTML = state.enderecos.map(x => `<tr><td><strong>${esc(x.codigo)}</strong></td><td>${esc(x.descricao||'—')}</td><td>${x.ativo?'Ativo':'Inativo'}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Nenhum endereço cadastrado.</td></tr>';
+  }
+  function renderEstoque(){
+    const q = $('estoqueBusca').value.trim().toLowerCase();
+    const rows = state.estoque
+      .filter(x => [x.tag,x.produto,x.endereco,x.endereco_curto].some(v => String(v??'').toLowerCase().includes(q)))
+      .sort((a,b)=>(a.rua-b.rua)||(a.coluna-b.coluna)||String(a.linha).localeCompare(String(b.linha)));
+    $('estoqueTbody').innerHTML = rows.map(x => `<tr>
+      <td><strong>${esc(x.tag)}</strong></td>
+      <td>${esc(x.produto)}</td>
+      <td><strong>${esc(x.endereco_curto||x.endereco)}</strong><div class="muted" style="font-size:11px">${esc(x.endereco)}</div></td>
+      <td>${String(x.rua??'—').padStart(2,'0')}</td>
+      <td>${String(x.coluna??'—').padStart(2,'0')}</td>
+      <td>${esc(x.linha||'—')}</td>
+      <td>${x.quantidade ?? 0}</td>
+    </tr>`).join('') || '<tr><td colspan="7" class="muted">Nenhum saldo encontrado.</td></tr>';
+  }
+  function renderPedidos(){
+    const q = $('pedidoBusca').value.trim().toLowerCase();
+    const rows = state.pedidos.filter(x => [x.numero_pedido,x.cliente,x.status].some(v => String(v??'').toLowerCase().includes(q)));
+    $('pedidosTbody').innerHTML = rows.map(x => `<tr><td><strong>${esc(x.numero_pedido)}</strong></td><td>${esc(x.cliente)}</td><td>${esc(x.status)}</td><td>${fmtDate(x.criado_em)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nenhum pedido encontrado.</td></tr>';
+  }
+
+
+
+
+  function encontrarProdutoPorTag(tag){
+    const q = String(tag || '').trim().toUpperCase();
+    return state.produtos.find(p => String(p.tag || '').toUpperCase() === q) || null;
+  }
+
+  function saldoAtualInventario(produtoId,enderecoId){
+    const row = state.estoque.find(x =>
+      x.produto_id === produtoId && x.endereco_id === enderecoId
+    );
+    return Number(row?.quantidade || 0);
+  }
+
+  function validarInventarioCsv(matrix){
+    if(!matrix.length) return {rows:[],errors:['Arquivo vazio.']};
+
+    const headers = matrix[0].map(h => String(h||'').trim().toUpperCase());
+    const required = ['TAG','ENDERECO','QUANTIDADE'];
+    const missing = required.filter(h => !headers.includes(h));
+
+    if(missing.length){
+      return {rows:[],errors:['Colunas ausentes: '+missing.join(', ')]};
+    }
+
+    const idx = Object.fromEntries(required.map(h=>[h,headers.indexOf(h)]));
+    const seen = new Map();
+
+    const rows = matrix.slice(1).map((r,n)=>{
+      const tag = String(r[idx.TAG]||'').trim().toUpperCase();
+      const enderecoTxt = String(r[idx.ENDERECO]||'').trim().toUpperCase();
+      const qtdTxt = String(r[idx.QUANTIDADE]??'').trim();
+
+      if(!tag && !enderecoTxt && !qtdTxt) return null;
+
+      const row = {
+        linha:n+2,
+        tag,
+        enderecoTxt,
+        quantidade:Number(qtdTxt),
+        erros:[]
+      };
+
+      if(!tag) row.erros.push('TAG vazia');
+      if(!enderecoTxt) row.erros.push('Endereço vazio');
+      if(qtdTxt === '' || !Number.isInteger(row.quantidade) || row.quantidade < 0){
+        row.erros.push('Quantidade inválida');
+      }
+
+      const prod = encontrarProdutoPorTag(tag);
+      const end = localizarEndereco(enderecoTxt);
+
+      row.produto_id = prod?.produto_id || null;
+      row.produto = prod?.descricao || '';
+      row.endereco_id = end?.id || null;
+      row.endereco = end?.codigo_curto || end?.codigo || enderecoTxt;
+
+      if(!prod) row.erros.push('TAG não cadastrada');
+      if(!end) row.erros.push('Endereço não cadastrado');
+
+      if(prod && end){
+        row.sistema = saldoAtualInventario(prod.produto_id,end.id);
+        row.diferenca = row.quantidade - row.sistema;
+      } else {
+        row.sistema = 0;
+        row.diferenca = 0;
+      }
+
+      const chave = `${tag}|${enderecoTxt}`;
+      if(seen.has(chave)){
+        row.erros.push('TAG + endereço duplicado no CSV');
+        seen.get(chave).erros.push('TAG + endereço duplicado no CSV');
+      }else{
+        seen.set(chave,row);
+      }
+
+      return row;
+    }).filter(Boolean);
+
+    return {rows,errors:[]};
+  }
+
+  function renderInventarioPreview(){
+    const rows = state.inventarioRows;
+    const box = $('inventarioResumo');
+
+    if(!rows.length){
+      box.textContent = 'Nenhum arquivo selecionado.';
+      box.className = 'status';
+      $('inventarioPreview').classList.add('hidden');
+      $('aplicarInventarioBtn').disabled = true;
+      return;
+    }
+
+    const erros = rows.reduce((n,r)=>n+r.erros.length,0);
+    const divergentes = rows.filter(r=>r.diferenca !== 0 && !r.erros.length).length;
+    const aumento = rows.filter(r=>r.diferenca > 0 && !r.erros.length)
+      .reduce((n,r)=>n+r.diferenca,0);
+    const reducao = rows.filter(r=>r.diferenca < 0 && !r.erros.length)
+      .reduce((n,r)=>n+Math.abs(r.diferenca),0);
+
+    box.textContent = `${rows.length} posições • ${divergentes} divergência(s) • +${aumento} / -${reducao} caixas • ${erros} erro(s)`;
+    box.className = 'status ' + (erros ? 'err' : 'ok');
+
+    $('aplicarInventarioBtn').disabled = erros > 0;
+    $('inventarioPreview').classList.remove('hidden');
+
+    $('inventarioPreviewTbody').innerHTML = rows.map(r=>{
+      const dif = Number(r.diferenca || 0);
+      const difTxt = dif > 0 ? `+${dif}` : String(dif);
+      return `<tr>
+        <td><strong>${esc(r.tag)}</strong></td>
+        <td>${esc(r.produto || '—')}</td>
+        <td><strong>${esc(r.endereco)}</strong></td>
+        <td>${r.sistema}</td>
+        <td><strong>${Number.isFinite(r.quantidade)?r.quantidade:'—'}</strong></td>
+        <td>${difTxt}</td>
+        <td>${r.erros.length ? esc(r.erros.join('; ')) : 'OK'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  $('inventarioCsv').addEventListener('change', async e=>{
+    state.inventarioRows = [];
+    const file = e.target.files?.[0];
+
+    if(!file){
+      renderInventarioPreview();
+      return;
+    }
+
+    const matrix = parseDelimited(await file.text());
+    const parsed = validarInventarioCsv(matrix);
+
+    if(parsed.errors.length){
+      $('inventarioResumo').textContent = parsed.errors.join(' ');
+      $('inventarioResumo').className = 'status err';
+      $('aplicarInventarioBtn').disabled = true;
+      return;
+    }
+
+    state.inventarioRows = parsed.rows;
+    renderInventarioPreview();
+  });
+
+  $('aplicarInventarioBtn').addEventListener('click', async ()=>{
+    const rows = state.inventarioRows;
+    if(!rows.length || rows.some(r=>r.erros.length)) return;
+
+    const divergentes = rows.filter(r=>r.diferenca !== 0).length;
+    const ok = confirm(
+      `Aplicar inventário em ${rows.length} posição(ões)?\n` +
+      `${divergentes} posição(ões) possuem diferença.\n\n` +
+      `Somente as linhas deste CSV serão atualizadas.`
+    );
+    if(!ok) return;
+
+    $('aplicarInventarioBtn').disabled = true;
+    $('inventarioResumo').textContent = 'Aplicando inventário...';
+    $('inventarioResumo').className = 'status';
+
+    let aplicados = 0;
+
+    try{
+      for(const r of rows){
+        const { error } = await client.rpc('aplicar_inventario_item',{
+          p_produto_id:r.produto_id,
+          p_endereco_id:r.endereco_id,
+          p_quantidade:r.quantidade
+        });
+
+        if(error){
+          throw new Error(`Linha ${r.linha} / TAG ${r.tag}: ${error.message}`);
+        }
+        aplicados++;
+      }
+
+      await loadEstoque();
+
+      $('inventarioResumo').textContent =
+        `Inventário aplicado com sucesso em ${aplicados} posição(ões).`;
+      $('inventarioResumo').className = 'status ok';
+
+      state.inventarioRows = [];
+      $('inventarioCsv').value = '';
+      $('inventarioPreview').classList.add('hidden');
+    }catch(err){
+      console.error(err);
+      $('inventarioResumo').textContent =
+        `Erro após ${aplicados} posição(ões): ${err.message || err}`;
+      $('inventarioResumo').className = 'status err';
+    }finally{
+      $('aplicarInventarioBtn').disabled = false;
+    }
+  });
+
+  function normalizarCodigoEndereco(valor){
+    return String(valor || '').trim().toUpperCase();
+  }
+
+  function localizarEndereco(valor){
+    const q = normalizarCodigoEndereco(valor);
+    if(!q) return null;
+
+    return state.enderecos.find(e => {
+      const codigo = normalizarCodigoEndereco(e.codigo);
+      const curto = normalizarCodigoEndereco(e.codigo_curto);
+      return codigo === q || curto === q;
+    }) || null;
+  }
+
+  function localizarProdutoPorEan(ean){
+    const q = String(ean || '').trim();
+    return state.produtos.find(p => String(p.ean || '').trim() === q) || null;
+  }
+
+  function saldoProdutoEndereco(produtoId, enderecoId){
+    const row = state.estoque.find(x =>
+      x.produto_id === produtoId && x.endereco_id === enderecoId
+    );
+    return Number(row?.quantidade || 0);
+  }
+
+  function previewTransferencia(){
+    const origem = localizarEndereco($('transfOrigem').value);
+    const destino = localizarEndereco($('transfDestino').value);
+    const prod = localizarProdutoPorEan($('transfEan').value);
+    const qtd = Number($('transfQtd').value || 0);
+
+    const partes = [];
+
+    if(origem) partes.push(`Origem: ${origem.codigo_curto || origem.codigo}`);
+    if(destino) partes.push(`Destino: ${destino.codigo_curto || destino.codigo}`);
+    if(prod) {
+      const saldo = origem ? saldoProdutoEndereco(prod.produto_id, origem.id) : 0;
+      partes.push(`TAG ${prod.tag} — saldo na origem: ${saldo}`);
+    }
+    if(qtd > 0) partes.push(`Qtd: ${qtd}`);
+
+    $('transfResumo').innerHTML = partes.length
+      ? `<div class="status">${esc(partes.join(' • '))}</div>`
+      : '';
+  }
+
+  async function executarTransferencia(){
+    const origem = localizarEndereco($('transfOrigem').value);
+    const destino = localizarEndereco($('transfDestino').value);
+    const prod = localizarProdutoPorEan($('transfEan').value);
+    const qtd = Number($('transfQtd').value || 0);
+    const feedback = $('transfFeedback');
+
+    if(!origem){
+      feedback.textContent = 'Endereço de origem não encontrado.';
+      feedback.className = 'status err';
+      $('transfOrigem').focus();
+      return;
+    }
+    if(!destino){
+      feedback.textContent = 'Endereço de destino não encontrado.';
+      feedback.className = 'status err';
+      $('transfDestino').focus();
+      return;
+    }
+    if(origem.id === destino.id){
+      feedback.textContent = 'Origem e destino não podem ser iguais.';
+      feedback.className = 'status err';
+      return;
+    }
+    if(!prod){
+      feedback.textContent = 'EAN não cadastrado.';
+      feedback.className = 'status err';
+      $('transfEan').focus();
+      return;
+    }
+    if(!Number.isInteger(qtd) || qtd <= 0){
+      feedback.textContent = 'Informe uma quantidade inteira maior que zero.';
+      feedback.className = 'status err';
+      $('transfQtd').focus();
+      return;
+    }
+
+    const saldo = saldoProdutoEndereco(prod.produto_id, origem.id);
+    if(saldo < qtd){
+      feedback.textContent = `Saldo insuficiente na origem. Disponível: ${saldo}.`;
+      feedback.className = 'status err';
+      return;
+    }
+
+    $('executarTransferenciaBtn').disabled = true;
+    feedback.textContent = 'Transferindo...';
+    feedback.className = 'status';
+
+    try{
+      const { error } = await client.rpc('transferir_estoque', {
+        p_produto_id: prod.produto_id,
+        p_endereco_origem_id: origem.id,
+        p_endereco_destino_id: destino.id,
+        p_quantidade: qtd
+      });
+      if(error) throw error;
+
+      feedback.innerHTML = `Transferência concluída: <strong>${esc(prod.tag)}</strong> · ${qtd} caixa(s) ·
+        <strong>${esc(origem.codigo_curto || origem.codigo)}</strong> →
+        <strong>${esc(destino.codigo_curto || destino.codigo)}</strong>`;
+      feedback.className = 'status ok';
+
+      $('transfEan').value = '';
+      $('transfQtd').value = '1';
+
+      await loadEstoque();
+      previewTransferencia();
+      $('transfEan').focus();
+    }catch(err){
+      console.error(err);
+      feedback.textContent = 'Erro na transferência: ' + (err.message || err);
+      feedback.className = 'status err';
+    }finally{
+      $('executarTransferenciaBtn').disabled = false;
+    }
+  }
+
+  function limparTransferencia(){
+    $('transfOrigem').value = '';
+    $('transfDestino').value = '';
+    $('transfEan').value = '';
+    $('transfQtd').value = '1';
+    $('transfFeedback').textContent = 'Informe origem, destino e item.';
+    $('transfFeedback').className = 'status';
+    $('transfResumo').innerHTML = '';
+    $('transfOrigem').focus();
+  }
+
+  function renderPickingConfig(){
+    const el = $('pickingConfig');
+    if (!el) return;
+    const baixa = String(state.configuracoes.baixar_estoque_no_picking || 'false').toLowerCase() === 'true';
+    const permitirFaltante = String(state.configuracoes.permitir_pedido_com_item_faltante || 'true').toLowerCase() === 'true';
+
+    el.innerHTML = `
+      <strong>Baixa automática no picking:</strong> ${baixa ? 'ATIVADA' : 'DESATIVADA — estoque estático.'}
+      &nbsp;•&nbsp;
+      <strong>Pedido com item faltante:</strong> ${permitirFaltante ? 'PERMITIDO' : 'BLOQUEADO'}
+    `;
+    el.className = 'status ' + (baixa ? 'err' : 'ok');
+  }
+
+  function consultarTag(){
+    const tag = $('consultaTag').value.trim().toUpperCase();
+    const box = $('consultaTagResultado');
+    if (!tag) {
+      box.innerHTML = '<span class="muted">Informe uma TAG.</span>';
+      return;
+    }
+    const rows = state.estoque
+      .filter(x => String(x.tag).toUpperCase() === tag)
+      .sort((a,b)=>(a.rua-b.rua)||(a.coluna-b.coluna)||String(a.linha).localeCompare(String(b.linha)));
+    if (!rows.length) {
+      const prod = state.produtos.find(x => String(x.tag).toUpperCase() === tag);
+      box.innerHTML = prod
+        ? `<div class="status">A TAG <strong>${esc(tag)}</strong> existe, mas não possui posição vinculada.</div>`
+        : `<div class="status err">TAG ${esc(tag)} não encontrada.</div>`;
+      return;
+    }
+    const nome = rows[0].produto || '';
+    box.innerHTML = `<div><strong>${esc(tag)} — ${esc(nome)}</strong></div>
+      <div class="row-actions" style="margin-top:8px">
+      ${rows.map(r => `<span class="status ok">${esc(r.endereco_curto||r.endereco)} · Qtd ${r.quantidade??0}</span>`).join('')}
+      </div>`;
+  }
+
+  function initMapaRua(){
+    const sel = $('mapaRua');
+    if (!sel || sel.options.length) return;
+    for (let i=1;i<=13;i++){
+      const op=document.createElement('option');
+      op.value=String(i);
+      op.textContent='Rua '+String(i).padStart(2,'0');
+      sel.appendChild(op);
+    }
+  }
+
+  function renderMapa(){
+    const grid = $('mapaGrid');
+    if (!grid) return;
+    initMapaRua();
+    const rua = Number($('mapaRua').value || 1);
+    const linhaFiltro = $('mapaLinha').value || 'TODAS';
+    const ocup = new Map(state.estoque.map(x => [`${x.rua}-${x.coluna}-${x.linha}`, x]));
+    const linhas = linhaFiltro === 'TODAS' ? ['A','B','C','D'] : [linhaFiltro];
+    const cells = [];
+    const colunaInicial = ((rua - 1) * 22) + 1;
+    const colunaFinal = rua * 22;
+    for (const linha of linhas) {
+      for (let coluna=colunaInicial; coluna<=colunaFinal; coluna++) {
+        const key = `${rua}-${coluna}-${linha}`;
+        const item = ocup.get(key);
+        cells.push(`<button type="button" class="${item?'primary':'secondary'} mapa-pos" data-key="${esc(key)}"
+          style="min-height:58px;padding:8px">
+          <div style="font-size:12px">${String(coluna).padStart(2,'0')}-${linha}</div>
+          <div style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item?esc(item.tag):'vazio'}</div>
+        </button>`);
+      }
+    }
+    grid.style.gridTemplateColumns = 'repeat(11,minmax(76px,1fr))';
+    grid.innerHTML = cells.join('');
+    const totalOcup = state.estoque.filter(x=>Number(x.rua)===rua && (linhaFiltro==='TODAS'||x.linha===linhaFiltro)).length;
+    $('mapaLegenda').textContent = `Rua ${String(rua).padStart(2,'0')} · ${totalOcup} posição(ões) ocupada(s) neste filtro.`;
+    grid.querySelectorAll('.mapa-pos').forEach(btn => btn.addEventListener('click', () => {
+      const item = ocup.get(btn.dataset.key);
+      $('mapaDetalhe').innerHTML = item
+        ? `<strong>${esc(item.endereco_curto||item.endereco)}</strong> <span class="muted">(${esc(item.endereco)})</span> — TAG ${esc(item.tag)} — ${esc(item.produto)} — Qtd ${item.quantidade??0}`
+        : `<strong>Posição vazia</strong> — ${esc(btn.dataset.key)}`;
+    }));
+  }
+
+
+  function validatePedidoCsv(matrix){
+    if (!matrix.length) return {rows:[],errors:['Arquivo vazio.']};
+    const headers = matrix[0].map(h => h.trim().toUpperCase());
+    const required = ['PEDIDO','CLIENTE','CIDADE','ESTADO','TAG','CAIXAS'];
+    const missing = required.filter(h => !headers.includes(h));
+    if (missing.length) return {rows:[],errors:['Colunas ausentes: ' + missing.join(', ')]};
+
+    const idx = Object.fromEntries(required.map(h => [h, headers.indexOf(h)]));
+    const rows = matrix.slice(1).map((r,n)=>({
+      linha:n+2,
+      pedido:(r[idx.PEDIDO]||'').trim(),
+      cliente:(r[idx.CLIENTE]||'').trim(),
+      cidade:(r[idx.CIDADE]||'').trim(),
+      estado:(r[idx.ESTADO]||'').trim().toUpperCase(),
+      tag:(r[idx.TAG]||'').trim().toUpperCase(),
+      caixas:Number((r[idx.CAIXAS]||'').trim() || 0),
+      erros:[]
+    })).filter(r=>r.pedido||r.cliente||r.cidade||r.estado||r.tag||r.caixas);
+
+    const pedidos = [...new Set(rows.map(r=>r.pedido).filter(Boolean))];
+    const clientes = [...new Set(rows.map(r=>r.cliente).filter(Boolean))];
+    const cidades = [...new Set(rows.map(r=>r.cidade).filter(Boolean))];
+    const estados = [...new Set(rows.map(r=>r.estado).filter(Boolean))];
+    if (pedidos.length !== 1) rows.forEach(r=>r.erros.push('Arquivo deve conter um único pedido'));
+    if (clientes.length !== 1) rows.forEach(r=>r.erros.push('Arquivo deve conter um único cliente'));
+    if (cidades.length !== 1) rows.forEach(r=>r.erros.push('Arquivo deve conter uma única cidade'));
+    if (estados.length !== 1) rows.forEach(r=>r.erros.push('Arquivo deve conter um único estado'));
+
+    const seen = new Map();
+    rows.forEach(r=>{
+      if(!r.pedido) r.erros.push('Pedido vazio');
+      if(!r.cliente) r.erros.push('Cliente vazio');
+      if(!r.cidade) r.erros.push('Cidade vazia');
+      if(!r.estado) r.erros.push('Estado vazio');
+      if(!r.tag) r.erros.push('TAG vazia');
+      if(!Number.isInteger(r.caixas) || r.caixas < 0) r.erros.push('Caixas inválidas');
+      if(r.caixas===0) r.erros.push('Quantidade zerada');
+      if(seen.has(r.tag)){
+        r.erros.push('TAG repetida no pedido');
+        seen.get(r.tag).erros.push('TAG repetida no pedido');
+      } else seen.set(r.tag,r);
+      const prod = state.produtos.find(p => String(p.tag).toUpperCase() === r.tag);
+      r.produto = prod?.descricao || '';
+      r.produto_id = prod?.produto_id || null;
+      if(!prod) {
+        r.erros.push('TAG não cadastrada');
+      } else {
+        const locais = state.estoque.filter(x => x.produto_id === r.produto_id);
+        r.semDisponibilidade = locais.length === 0;
+      }
+    });
+
+    return {rows,errors:[]};
+  }
+
+  function renderPedidoCsvPreview(){
+    const rows = state.pedidoImportRows;
+    const erros = rows.reduce((n,r)=>n+r.erros.length,0);
+    if(!rows.length){
+      $('pedidoCsvResumo').textContent='Nenhum arquivo selecionado.';
+      $('pedidoCsvResumo').className='status';
+      $('pedidoCsvPreview').classList.add('hidden');
+      $('importarPedidoCsvBtn').disabled=true;
+      return;
+    }
+    const pedido = rows[0]?.pedido || '';
+    const cliente = rows[0]?.cliente || '';
+    const cidade = rows[0]?.cidade || '';
+    const estado = rows[0]?.estado || '';
+    const totalCx = rows.reduce((a,r)=>a+(Number(r.caixas)||0),0);
+    $('pedidoCsvResumo').textContent = `Pedido ${pedido} • ${cliente} • ${cidade}/${estado} • ${rows.length} itens • ${totalCx} caixas • ${erros} erro(s)`;
+    $('pedidoCsvResumo').className='status '+(erros?'err':'ok');
+    $('importarPedidoCsvBtn').disabled = erros>0;
+    $('pedidoCsvPreview').classList.remove('hidden');
+    $('pedidoCsvPreviewTbody').innerHTML = rows.map(r=>`<tr>
+      <td><strong>${esc(r.tag)}</strong></td>
+      <td>${esc(r.produto||'—')}</td>
+      <td>${r.caixas}</td>
+      <td>${r.erros.length
+        ? esc(r.erros.join('; '))
+        : (r.semDisponibilidade ? 'SEM ESTOQUE/ENDEREÇO — permitido' : 'OK')}</td>
+    </tr>`).join('');
+  }
+
+  $('pedidoCsv').addEventListener('change', async e=>{
+    state.pedidoImportRows=[];
+    const file=e.target.files?.[0];
+    if(!file) return renderPedidoCsvPreview();
+    const matrix=parseDelimited(await file.text());
+    const parsed=validatePedidoCsv(matrix);
+    if(parsed.errors.length){
+      $('pedidoCsvResumo').textContent=parsed.errors.join(' ');
+      $('pedidoCsvResumo').className='status err';
+      return;
+    }
+    state.pedidoImportRows=parsed.rows;
+    renderPedidoCsvPreview();
+  });
+
+  $('importarPedidoCsvBtn').addEventListener('click', async ()=>{
+    const rows=state.pedidoImportRows;
+    if(!rows.length || rows.some(r=>r.erros.length)) return;
+
+    const permitirFaltante = String(state.configuracoes.permitir_pedido_com_item_faltante || 'true').toLowerCase() === 'true';
+    const faltantes = rows.filter(r => r.semDisponibilidade);
+
+    if(faltantes.length && !permitirFaltante){
+      msg(`Importação bloqueada: ${faltantes.length} item(ns) sem estoque/endereço disponível.`,'err');
+      return;
+    }
+
+    const numero=rows[0].pedido;
+    const cliente=rows[0].cliente;
+    const cidade=rows[0].cidade;
+    const estado=rows[0].estado;
+    $('importarPedidoCsvBtn').disabled=true;
+    msg('Importando pedido '+numero+'...');
+
+    try{
+      const {data:existente,error:e0}=await client.from('pedidos').select('id,numero_pedido').eq('numero_pedido',numero).maybeSingle();
+      if(e0) throw e0;
+
+      let pedidoId;
+      if(existente){
+        const ok = confirm(`O pedido ${numero} já existe. Deseja substituir os itens atuais por este CSV?`);
+        if(!ok){
+          $('importarPedidoCsvBtn').disabled=false;
+          return;
+        }
+        pedidoId=existente.id;
+        const {error:ed}=await client.from('pedido_itens').delete().eq('pedido_id',pedidoId);
+        if(ed) throw ed;
+        const {error:eu}=await client.from('pedidos').update({cliente,cidade,estado,status:'ABERTO'}).eq('id',pedidoId);
+        if(eu) throw eu;
+      } else {
+        const {data:novo,error:e1}=await client.from('pedidos').insert({numero_pedido:numero,cliente,cidade,estado,status:'ABERTO'}).select('id').single();
+        if(e1) throw e1;
+        pedidoId=novo.id;
+      }
+
+      const payload=rows.map(r=>({
+        pedido_id:pedidoId,
+        produto_id:r.produto_id,
+        quantidade_caixas:r.caixas
+      }));
+      const {error:e2}=await client.from('pedido_itens').insert(payload);
+      if(e2) throw e2;
+
+      state.pedidoImportRows=[];
+      $('pedidoCsv').value='';
+      renderPedidoCsvPreview();
+      await loadPedidos();
+      updateKpis();
+      msg(`Pedido ${numero} importado com sucesso e mantido como ABERTO para coleta futura.`,'ok');
+    }catch(err){
+      console.error(err);
+      msg('Erro ao importar pedido: '+(err.message||err),'err');
+      $('importarPedidoCsvBtn').disabled=false;
+    }
+  });
+
+
+  function prioridadeLinhaPicking(linha){
+    const ordem = {D:0, C:1, B:2, A:3};
+    return Object.prototype.hasOwnProperty.call(ordem, linha) ? ordem[linha] : 9;
+  }
+
+  function compararLocaisPicking(a,b){
+    // Endereços de chão ficam antes dos níveis de porta-palete,
+    // pois são acessíveis diretamente sem equipamento.
+    const tipoA = String(a.tipo_endereco || 'PORTA_PALETE').toUpperCase();
+    const tipoB = String(b.tipo_endereco || 'PORTA_PALETE').toUpperCase();
+    const rankingTipo = {
+      TEMPORARIO: -3,
+      CHAO: -2,
+      MISTO: -1,
+      PORTA_PALETE: 0,
+      INCOMPLETO: 1
+    };
+    const rankTipoA = rankingTipo[tipoA] ?? 9;
+    const rankTipoB = rankingTipo[tipoB] ?? 9;
+    if(rankTipoA !== rankTipoB) return rankTipoA-rankTipoB;
+
+    if(tipoA === 'CHAO' && tipoB === 'CHAO'){
+      return (Number(a.rua)||999) - (Number(b.rua)||999)
+        || (Number(a.posicao)||999) - (Number(b.posicao)||999);
+    }
+
+    if(tipoA === 'TEMPORARIO' || tipoA === 'MISTO' || tipoA === 'INCOMPLETO'){
+      return 0;
+    }
+
+    // Porta-palete: D -> C -> B -> A; depois coluna crescente.
+    return prioridadeLinhaPicking(a.linha) - prioridadeLinhaPicking(b.linha)
+      || (Number(a.coluna)||999) - (Number(b.coluna)||999)
+      || (Number(a.rua)||999) - (Number(b.rua)||999);
+  }
+
+  function chaveOrdenacaoItemPicking(item){
+    const principal = item.locais?.[0];
+    if(!principal) return [99,99,999999,999,999];
+
+    const tipo = String(principal.tipo_endereco || 'PORTA_PALETE').toUpperCase();
+    if(tipo === 'TEMPORARIO'){
+      return [-3, 0, 0, 0, 0];
+    }
+    if(tipo === 'CHAO'){
+      return [-2, 0, Number(principal.rua)||999, Number(principal.posicao)||999, 0];
+    }
+    if(tipo === 'MISTO'){
+      return [-1, 0, 0, 0, 0];
+    }
+    if(tipo === 'INCOMPLETO'){
+      return [1, 0, 0, 0, 0];
+    }
+
+    return [
+      0,
+      prioridadeLinhaPicking(principal.linha),
+      Number(principal.coluna)||999999,
+      Number(principal.rua)||999,
+      0
+    ];
+  }
+
+  function compararChavesPicking(a,b){
+    const ka=chaveOrdenacaoItemPicking(a);
+    const kb=chaveOrdenacaoItemPicking(b);
+    for(let i=0;i<ka.length;i++){
+      if(ka[i] !== kb[i]) return ka[i]-kb[i];
+    }
+    return String(a.produtos?.tag||'').localeCompare(String(b.produtos?.tag||''));
+  }
+
+  async function montarPicking(){
+    const numero = $('pickingPedido').value.trim();
+    const box = $('pickingResultado');
+    if (!numero) {
+      box.innerHTML = '<div class="status err">Informe o número do pedido.</div>';
+      return;
+    }
+    box.innerHTML = '<div class="status">Carregando pedido...</div>';
+
+    const { data:pedido, error } = await client
+      .from('pedidos')
+      .select('id,numero_pedido,cliente,cidade,estado,status,criado_em')
+      .eq('numero_pedido', numero)
+      .maybeSingle();
+    if (error) {
+      box.innerHTML = `<div class="status err">${esc(error.message)}</div>`;
+      return;
+    }
+    if (!pedido) {
+      box.innerHTML = '<div class="status err">Pedido não encontrado.</div>';
+      return;
+    }
+
+    const { data:itens, error:e2 } = await client
+      .from('pedido_itens')
+      .select('produto_id,quantidade_caixas,produtos(tag,descricao)')
+      .eq('pedido_id', pedido.id);
+    if (e2) {
+      box.innerHTML = `<div class="status err">${esc(e2.message)}</div>`;
+      return;
+    }
+
+    const ordenados = (itens||[]).map(i=>{
+      const locais = state.estoque
+        .filter(x => x.produto_id === i.produto_id)
+        .sort(compararLocaisPicking);
+      return {...i, locais};
+    }).sort(compararChavesPicking);
+
+    const totalCaixas = ordenados.reduce((a,i)=>a+(Number(i.quantidade_caixas)||0),0);
+    const semEndereco = ordenados.filter(i=>!i.locais.length).length;
+
+    const linhas = ordenados.map(i => {
+      const principal = i.locais[0];
+      const pendente = !principal;
+
+      const enderecosHtml = i.locais.length
+        ? i.locais.map((l,idx) => {
+            const txt = l.endereco_curto || l.endereco;
+            return `<span class="end-item ${idx===0?'end-principal':'end-lista'}">${esc(txt)}</span>`;
+          }).join('')
+        : `<span class="end-item end-principal">PENDENTE</span>`;
+
+      const extras = Math.max(0, i.locais.length - 5);
+
+      return `<tr${pendente ? ' class="pick-pendente"' : ''}>
+        <td class="pick-tag">${esc(i.produtos?.tag||'')}</td>
+        <td class="pick-produto">${esc(i.produtos?.descricao||'')}</td>
+        <td class="pick-enderecos">
+          ${enderecosHtml}
+          ${extras ? `<span class="mais-enderecos-print">+${extras}</span>` : ''}
+          ${extras ? `<span class="mais-enderecos-screen">(${i.locais.length} endereços)</span>` : ''}
+        </td>
+        <td class="pick-caixas">${i.quantidade_caixas}</td>
+        <td class="pick-check">□</td>
+      </tr>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="picking-print-header print-only">
+        <div class="picking-print-title">PICKING 3B - ${esc(pedido.numero_pedido)}</div>
+        <div class="picking-print-barcode">
+          <svg id="pickingPedidoBarcode" aria-label="Código de barras do pedido ${esc(pedido.numero_pedido)}"></svg>
+        </div>
+        <div class="picking-print-info">
+          <strong>${esc(pedido.cliente)}</strong> · ${esc(pedido.cidade||'—')}${pedido.estado ? '/'+esc(pedido.estado) : ''}<br>
+          ${ordenados.length} itens · ${totalCaixas} caixas${semEndereco ? ` · ${semEndereco} sem endereço` : ''}
+        </div>
+      </div>
+
+      <div class="picking-screen-meta">
+        <div class="grid" style="margin-bottom:14px">
+          <div class="c3"><span class="muted">Pedido</span><div><strong style="font-size:20px">${esc(pedido.numero_pedido)}</strong></div></div>
+          <div class="c4"><span class="muted">Cliente</span><div><strong>${esc(pedido.cliente)}</strong></div></div>
+          <div class="c2"><span class="muted">Cidade/UF</span><div><strong>${esc(pedido.cidade||'—')}${pedido.estado ? ' / '+esc(pedido.estado) : ''}</strong></div></div>
+          <div class="c3"><span class="muted">Status</span><div><strong>${esc(pedido.status)}</strong></div></div>
+        </div>
+        <div class="row-actions" style="margin-bottom:12px">
+          <span class="status ok">${ordenados.length} itens</span>
+          <span class="status ok">${totalCaixas} caixas</span>
+          ${semEndereco?`<span class="status err">${semEndereco} item(ns) sem endereço</span>`:''}
+        </div>
+      </div>
+
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>TAG</th><th>PRODUTO</th><th>ENDEREÇO(S)</th><th>CX</th><th>✓</th>
+        </tr></thead>
+        <tbody>${linhas || '<tr><td colspan="5">Pedido sem itens.</td></tr>'}</tbody>
+      </table></div>
+
+      <div class="picking-print-footer print-only">
+        <div>Separado por</div>
+        <div>Data / Hora</div>
+      </div>`;
+
+    const barcodeEl = $('pickingPedidoBarcode');
+    if(barcodeEl && window.JsBarcode){
+      try{
+        window.JsBarcode(barcodeEl, String(pedido.numero_pedido), {
+          format: 'CODE128',
+          displayValue: false,
+          margin: 0,
+          height: 34,
+          width: 1.6
+        });
+      }catch(err){
+        console.warn('Não foi possível gerar o código de barras do pedido:', err);
+      }
+    }
+  }
+
+
+  function updateKpis(){
+    const produtosAtivos = state.produtos.filter(p => p.ativo !== false).length;
+
+    // state.enderecos contém toda a malha física; contamos somente ativos.
+    const enderecosAtivos = state.enderecos.filter(e => e.ativo !== false).length;
+
+    // Neste estágio o estoque é estático e as quantidades podem estar zeradas.
+    const caixasEstoque = state.estoque.reduce(
+      (total, item) => total + (Number(item.quantidade) || 0),
+      0
+    );
+
+    const statusFechados = new Set(['FINALIZADO','CANCELADO']);
+    const pedidosAbertos = state.pedidos.filter(
+      p => !statusFechados.has(String(p.status || '').toUpperCase())
+    ).length;
+
+    $('kpiProdutos').textContent = produtosAtivos.toLocaleString('pt-BR');
+    $('kpiEnderecos').textContent = enderecosAtivos.toLocaleString('pt-BR');
+    $('kpiEstoque').textContent = caixasEstoque.toLocaleString('pt-BR');
+    $('kpiPedidos').textContent = pedidosAbertos.toLocaleString('pt-BR');
+  }
+
+
+
+  $('executarTransferenciaBtn').addEventListener('click', executarTransferencia);
+  $('limparTransferenciaBtn').addEventListener('click', limparTransferencia);
+
+  ['transfOrigem','transfDestino','transfEan','transfQtd'].forEach(id => {
+    $(id).addEventListener('input', previewTransferencia);
+  });
+
+  $('transfOrigem').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      $('transfDestino').focus();
+    }
+  });
+  $('transfDestino').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      $('transfEan').focus();
+    }
+  });
+  $('transfEan').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      $('transfQtd').focus();
+      $('transfQtd').select();
+    }
+  });
+  $('transfQtd').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      executarTransferencia();
+    }
+  });
+
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
+    $('tab-' + btn.dataset.tab).classList.remove('hidden');
+  }));
+
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('loginMsg').textContent = 'Entrando...';
+    try {
+      const { error } = await client.auth.signInWithPassword({ email:$('email').value.trim(), password:$('password').value });
+      $('loginMsg').textContent = error ? ('Não foi possível entrar: ' + error.message) : '';
+    } catch (err) {
+      $('loginMsg').textContent = 'Falha de conexão com o Supabase: ' + (err?.message || err);
+    }
+  });
+  $('logoutBtn').addEventListener('click', () => client.auth.signOut());
+
+  client.auth.onAuthStateChange((_event, session) => showApp(session));
+
+  async function restaurarSessao(){
+    try{
+      const { data, error } = await client.auth.getSession();
+      if(error) throw error;
+      showApp(data?.session || null);
+    }catch(err){
+      console.error('Erro ao restaurar sessão:', err);
+      showApp(null);
+    }
+  }
+
+  restaurarSessao();
+
+  document.addEventListener('visibilitychange', async () => {
+    if(document.visibilityState !== 'visible') return;
+    try{
+      const { data } = await client.auth.getSession();
+      if(data?.session){
+        await client.auth.refreshSession();
+      }
+    }catch(err){
+      console.warn('Não foi possível renovar a sessão:', err);
+    }
+  });
+
+
+  function parseDelimited(text) {
+    text = text.replace(/^\uFEFF/, '');
+    const delimiter = text.includes(';') ? ';' : ',';
+    const rows = [];
+    let row = [], value = '', quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '"') {
+        if (quoted && text[i + 1] === '"') { value += '"'; i++; }
+        else quoted = !quoted;
+      } else if (ch === delimiter && !quoted) {
+        row.push(value); value = '';
+      } else if ((ch === '\n' || ch === '\r') && !quoted) {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(value); value = '';
+        if (row.some(x => x.trim() !== '')) rows.push(row);
+        row = [];
+      } else {
+        value += ch;
+      }
+    }
+    if (value.length || row.length) {
+      row.push(value);
+      if (row.some(x => x.trim() !== '')) rows.push(row);
+    }
+    return rows;
+  }
+
+  function validateImportRows(matrix) {
+    if (!matrix.length) return { rows: [], errors: ['Arquivo vazio.'] };
+    const headers = matrix[0].map(h => h.trim().toUpperCase());
+    const required = ['ACAO','TAG','DESCRICAO','EAN'];
+    const missing = required.filter(h => !headers.includes(h));
+    if (missing.length) return { rows: [], errors: ['Colunas ausentes: ' + missing.join(', ')] };
+
+    const idx = Object.fromEntries(required.map(h => [h, headers.indexOf(h)]));
+    const allowed = new Set(['NOVO','ATUALIZAR','ADICIONAR_EAN','INATIVAR']);
+    const rows = matrix.slice(1).map((r, n) => {
+      const item = {
+        linha: n + 2,
+        acao: (r[idx.ACAO] || '').trim().toUpperCase(),
+        tag: (r[idx.TAG] || '').trim().toUpperCase(),
+        descricao: (r[idx.DESCRICAO] || '').trim(),
+        ean: (r[idx.EAN] || '').trim(),
+        erros: []
+      };
+      if (!allowed.has(item.acao)) item.erros.push('Ação inválida');
+      if (!item.tag) item.erros.push('TAG vazia');
+      if (item.acao === 'NOVO' && !item.descricao) item.erros.push('Descrição vazia');
+      if (['NOVO','ADICIONAR_EAN'].includes(item.acao) && !item.ean) item.erros.push('EAN vazio');
+      return item;
+    }).filter(r => r.acao || r.tag || r.descricao || r.ean);
+
+    const tagNew = new Map(), eanMap = new Map();
+    for (const r of rows) {
+      if (r.acao === 'NOVO') {
+        if (tagNew.has(r.tag)) {
+          r.erros.push('TAG repetida no arquivo');
+          tagNew.get(r.tag).erros.push('TAG repetida no arquivo');
+        } else tagNew.set(r.tag, r);
+      }
+      if (r.ean && ['NOVO','ADICIONAR_EAN','ATUALIZAR'].includes(r.acao)) {
+        if (eanMap.has(r.ean) && eanMap.get(r.ean).tag !== r.tag) {
+          r.erros.push('EAN repetido em outra TAG');
+          eanMap.get(r.ean).erros.push('EAN repetido em outra TAG');
+        } else eanMap.set(r.ean, r);
+      }
+    }
+    return { rows, errors: [] };
+  }
+
+  function renderCsvPreview() {
+    const rows = state.importRows;
+    const errors = rows.reduce((n,r)=>n+r.erros.length,0);
+    const counts = rows.reduce((a,r)=>{a[r.acao]=(a[r.acao]||0)+1; return a;},{});
+    $('csvResumo').textContent = rows.length
+      ? `${rows.length} linhas • ${counts.NOVO||0} novos • ${counts.ATUALIZAR||0} atualizações • ${counts.ADICIONAR_EAN||0} novos EANs • ${counts.INATIVAR||0} inativações • ${errors} erro(s)`
+      : 'Nenhuma linha válida encontrada.';
+    $('csvResumo').className = 'status ' + (errors ? 'err' : 'ok');
+    $('importarCsvBtn').disabled = !rows.length || errors > 0;
+    $('csvPreview').classList.toggle('hidden', !rows.length);
+    $('csvPreviewTbody').innerHTML = rows.slice(0, 50).map(r => `<tr>
+      <td>${esc(r.acao)}</td><td><strong>${esc(r.tag)}</strong></td><td>${esc(r.descricao||'—')}</td>
+      <td>${esc(r.ean||'—')}</td><td>${r.erros.length ? esc(r.erros.join('; ')) : 'OK'}</td>
+    </tr>`).join('');
+    if (rows.length > 50) $('csvPreviewTbody').innerHTML += `<tr><td colspan="5" class="muted">Prévia limitada às primeiras 50 linhas.</td></tr>`;
+  }
+
+  $('produtoCsv').addEventListener('change', async e => {
+    state.importRows = [];
+    $('importarCsvBtn').disabled = true;
+    const file = e.target.files?.[0];
+    if (!file) return renderCsvPreview();
+    const matrix = parseDelimited(await file.text());
+    const parsed = validateImportRows(matrix);
+    if (parsed.errors.length) {
+      $('csvResumo').textContent = parsed.errors.join(' ');
+      $('csvResumo').className = 'status err';
+      $('csvPreview').classList.add('hidden');
+      return;
+    }
+    state.importRows = parsed.rows;
+    renderCsvPreview();
+  });
+
+  async function fetchExistingTags(tags) {
+    const found = new Map();
+    for (let i=0; i<tags.length; i+=100) {
+      const chunk = tags.slice(i,i+100);
+      const {data,error} = await client.from('produtos').select('id,tag,descricao,ativo').in('tag', chunk);
+      if (error) throw error;
+      (data||[]).forEach(x=>found.set(x.tag,x));
+    }
+    return found;
+  }
+
+  async function fetchExistingEans(eans) {
+    const found = new Map();
+    for (let i=0; i<eans.length; i+=100) {
+      const chunk = eans.slice(i,i+100);
+      const {data,error} = await client.from('produto_eans').select('id,ean,produto_id,ativo').in('ean', chunk);
+      if (error) throw error;
+      (data||[]).forEach(x=>found.set(x.ean,x));
+    }
+    return found;
+  }
+
+  $('importarCsvBtn').addEventListener('click', async () => {
+    const rows = state.importRows;
+    if (!rows.length || rows.some(r=>r.erros.length)) return;
+    $('importarCsvBtn').disabled = true;
+    msg('Validando dados existentes no banco...');
+
+    try {
+      const tags = [...new Set(rows.map(r=>r.tag).filter(Boolean))];
+      const eans = [...new Set(rows.map(r=>r.ean).filter(Boolean))];
+      let products = await fetchExistingTags(tags);
+      const existingEans = await fetchExistingEans(eans);
+
+      const novos = rows.filter(r=>r.acao==='NOVO');
+      const conflitos = [];
+      novos.forEach(r => {
+        if (products.has(r.tag)) conflitos.push(`TAG ${r.tag} já existe`);
+        const ex = existingEans.get(r.ean);
+        if (ex) conflitos.push(`EAN ${r.ean} já existe`);
+      });
+      rows.filter(r=>['ATUALIZAR','ADICIONAR_EAN','INATIVAR'].includes(r.acao)).forEach(r=>{
+        if (!products.has(r.tag)) conflitos.push(`TAG ${r.tag} não existe para ${r.acao}`);
+      });
+      rows.filter(r=>r.acao==='ADICIONAR_EAN').forEach(r=>{
+        if (existingEans.has(r.ean)) conflitos.push(`EAN ${r.ean} já existe`);
+      });
+      if (conflitos.length) throw new Error('Importação cancelada: ' + conflitos.slice(0,8).join(' • ') + (conflitos.length>8?' • ...':''));
+
+      msg('Gravando produtos...');
+      for (let i=0;i<novos.length;i+=100) {
+        const chunk=novos.slice(i,i+100).map(r=>({tag:r.tag,descricao:r.descricao,ativo:true}));
+        const {error}=await client.from('produtos').insert(chunk);
+        if(error) throw error;
+      }
+
+      products = await fetchExistingTags(tags);
+
+      const novoEans = novos.map(r=>({produto_id:products.get(r.tag).id,ean:r.ean,ativo:true}));
+      for (let i=0;i<novoEans.length;i+=100) {
+        const {error}=await client.from('produto_eans').insert(novoEans.slice(i,i+100));
+        if(error) throw error;
+      }
+
+      const updates = rows.filter(r=>r.acao==='ATUALIZAR');
+      for (const r of updates) {
+        const patch = {ativo:true};
+        if (r.descricao) patch.descricao = r.descricao;
+        const {error}=await client.from('produtos').update(patch).eq('id',products.get(r.tag).id);
+        if(error) throw error;
+        if (r.ean && !existingEans.has(r.ean)) {
+          const {error:e2}=await client.from('produto_eans').insert({produto_id:products.get(r.tag).id,ean:r.ean,ativo:true});
+          if(e2) throw e2;
+        }
+      }
+
+      for (const r of rows.filter(r=>r.acao==='ADICIONAR_EAN')) {
+        const {error}=await client.from('produto_eans').insert({produto_id:products.get(r.tag).id,ean:r.ean,ativo:true});
+        if(error) throw error;
+      }
+
+      for (const r of rows.filter(r=>r.acao==='INATIVAR')) {
+        const {error}=await client.from('produtos').update({ativo:false}).eq('id',products.get(r.tag).id);
+        if(error) throw error;
+      }
+
+      await loadProdutos();
+      updateKpis();
+      msg(`Importação concluída: ${rows.length} operação(ões) processadas.`, 'ok');
+      $('csvResumo').textContent = 'Importação concluída com sucesso.';
+      $('csvResumo').className = 'status ok';
+      state.importRows = [];
+      $('produtoCsv').value = '';
+      $('csvPreview').classList.add('hidden');
+    } catch (err) {
+      console.error(err);
+      msg(err.message || 'Erro durante a importação.', 'err');
+      $('importarCsvBtn').disabled = false;
+    }
+  });
+
+  $('produtoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const tag = $('produtoTag').value.trim().toUpperCase();
+    const descricao = $('produtoDescricao').value.trim();
+    const ean = $('produtoEan').value.trim();
+    if (!tag || !descricao || !ean) return;
+    msg('Cadastrando produto...');
+    const { data:p, error:e1 } = await client.from('produtos').insert({tag,descricao}).select('id').single();
+    if (e1) return msg('Erro ao cadastrar produto: '+e1.message,'err');
+    const { error:e2 } = await client.from('produto_eans').insert({produto_id:p.id,ean});
+    if (e2) return msg('Produto criado, mas houve erro no EAN: '+e2.message,'err');
+    e.target.reset();
+    await loadProdutos(); updateKpis(); msg('Produto cadastrado.','ok');
+  });
+
+  $('enderecoForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const codigo = $('enderecoCodigo').value.trim().toUpperCase();
+    const descricao = $('enderecoDescricao').value.trim() || null;
+    const { error } = await client.from('enderecos').insert({codigo,descricao});
+    if (error) return msg('Erro ao cadastrar endereço: '+error.message,'err');
+    e.target.reset(); await loadEnderecos(); updateKpis(); msg('Endereço cadastrado.','ok');
+  });
+
+  function confContagemOk(produtoId){
+    return state.confLeituras.filter(l =>
+      l.resultado === 'OK' && l.produto_id === produtoId
+    ).length;
+  }
+
+  function renderConferencia(){
+    const pedido = state.confPedidoAtual;
+    if(!pedido){
+      $('confResultado').innerHTML = '';
+      $('confAreaLeitura').classList.add('hidden');
+      return;
+    }
+
+    const totalNecessario = state.confItens.reduce((n,i)=>n+(Number(i.quantidade_caixas)||0),0);
+    const totalLido = state.confItens.reduce((n,i)=>n+confContagemOk(i.produto_id),0);
+    const completos = state.confItens.filter(i=>confContagemOk(i.produto_id) >= Number(i.quantidade_caixas)).length;
+    const finalizado = totalNecessario > 0 && totalLido >= totalNecessario;
+
+    const linhas = state.confItens.map(i=>{
+      const lido = confContagemOk(i.produto_id);
+      const pedidoQtd = Number(i.quantidade_caixas)||0;
+      const falta = Math.max(0,pedidoQtd-lido);
+      const pct = pedidoQtd ? Math.min(100, Math.round((lido/pedidoQtd)*100)) : 0;
+      return `<tr>
+        <td><strong>${esc(i.produtos?.tag||'')}</strong></td>
+        <td>${esc(i.produtos?.descricao||'')}</td>
+        <td style="text-align:center">${pedidoQtd}</td>
+        <td style="text-align:center"><strong>${lido}</strong></td>
+        <td style="min-width:90px">
+          <div style="height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:#16a34a"></div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const invalidas = state.confLeituras.filter(l=>l.resultado !== 'OK').length;
+
+    $('confResultado').innerHTML = `
+      <div class="grid" style="margin-bottom:14px">
+        <div class="c3"><span class="muted">Pedido</span><div><strong style="font-size:20px">${esc(pedido.numero_pedido)}</strong></div></div>
+        <div class="c4"><span class="muted">Cliente</span><div><strong>${esc(pedido.cliente)}</strong></div></div>
+        <div class="c3"><span class="muted">Cidade/UF</span><div><strong>${esc(pedido.cidade||'—')}${pedido.estado ? '/'+esc(pedido.estado) : ''}</strong></div></div>
+        <div class="c2"><span class="muted">Progresso</span><div><strong>${totalLido}/${totalNecessario}</strong></div></div>
+      </div>
+
+      <div class="row-actions" style="margin-bottom:12px">
+        <span class="status ${finalizado?'ok':''}">${finalizado?'CONFERÊNCIA COMPLETA':'EM CONFERÊNCIA'}</span>
+        <span class="status ok">${completos}/${state.confItens.length} itens completos</span>
+        ${invalidas ? `<span class="status err">${invalidas} leitura(s) inválida(s)</span>` : ''}
+        ${finalizado && pedido.status !== 'CONFERIDO'
+          ? `<button id="marcarConferidoBtn" class="primary" type="button">Marcar pedido como CONFERIDO</button>`
+          : ''}
+        ${pedido.status === 'CONFERIDO'
+          ? `<span class="status ok">PEDIDO CONFERIDO</span>`
+          : ''}
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>TAG</th><th>Produto</th><th>Pedido</th><th>Lido</th><th>Progresso</th></tr></thead>
+          <tbody>${linhas || '<tr><td colspan="5">Pedido sem itens.</td></tr>'}</tbody>
+        </table>
+      </div>`;
+
+    $('confAreaLeitura').classList.remove('hidden');
+
+    const marcarBtn = $('marcarConferidoBtn');
+    if(marcarBtn){
+      marcarBtn.addEventListener('click', marcarPedidoComoConferido);
+    }
+
+    if(!state.confCameraAtiva){
+      setTimeout(()=> $('confEan').focus(), 50);
+    }
+  }
+
+
+  async function marcarPedidoComoConferido(){
+    const pedido = state.confPedidoAtual;
+    if(!pedido) return;
+
+    const totalNecessario = state.confItens.reduce(
+      (n,i)=>n+(Number(i.quantidade_caixas)||0), 0
+    );
+    const totalLido = state.confItens.reduce(
+      (n,i)=>n+confContagemOk(i.produto_id), 0
+    );
+
+    if(totalNecessario <= 0 || totalLido < totalNecessario){
+      $('confFeedback').textContent = 'A conferência precisa estar 100% concluída antes de marcar o pedido como CONFERIDO.';
+      $('confFeedback').className = 'status err';
+      tocarSomConferencia('erro');
+      return;
+    }
+
+    const confirmar = confirm(
+      `Confirmar o pedido ${pedido.numero_pedido} como CONFERIDO?\n\n` +
+      `Após a confirmação, o status do pedido será atualizado no sistema.`
+    );
+    if(!confirmar) return;
+
+    const btn = $('marcarConferidoBtn');
+    if(btn) btn.disabled = true;
+
+    $('confFeedback').textContent = 'Atualizando status do pedido...';
+    $('confFeedback').className = 'status';
+
+    try{
+      const { data, error } = await client
+        .from('pedidos')
+        .update({ status:'CONFERIDO', atualizado_em:new Date().toISOString() })
+        .eq('id', pedido.id)
+        .select('id,numero_pedido,cliente,cidade,estado,status')
+        .single();
+
+      if(error) throw error;
+
+      state.confPedidoAtual = data;
+      const idx = state.pedidos.findIndex(p => p.id === data.id);
+      if(idx >= 0){
+        state.pedidos[idx] = { ...state.pedidos[idx], ...data };
+      }
+
+      $('confFeedback').textContent = `Pedido ${pedido.numero_pedido} atualizado para CONFERIDO.`;
+      $('confFeedback').className = 'status ok';
+      tocarSomConferencia('concluido');
+
+      renderConferencia();
+      renderPedidos();
+      updateKpis();
+    }catch(err){
+      console.error(err);
+      $('confFeedback').textContent = 'Erro ao atualizar status do pedido: ' + (err.message || err);
+      $('confFeedback').className = 'status err';
+      tocarSomConferencia('erro');
+      if(btn) btn.disabled = false;
+    }
+  }
+
+  async function abrirPedidoConferencia(){
+    if(state.confCameraAtiva || state.confScanner){
+      await fecharCameraConferencia();
+    }
+    const numero = $('confPedido').value.trim();
+    if(!numero) {
+      $('confResultado').innerHTML='<div class="status err">Informe o número do pedido.</div>';
+      return;
+    }
+
+    $('confFeedback').textContent = 'Carregando pedido...';
+    $('confFeedback').className = 'status';
+
+    const { data:pedido, error } = await client
+      .from('pedidos')
+      .select('id,numero_pedido,cliente,cidade,estado,status')
+      .eq('numero_pedido',numero)
+      .maybeSingle();
+
+    if(error){
+      msg('Erro ao consultar pedido: '+error.message,'err');
+      return;
+    }
+    if(!pedido){
+      state.confPedidoAtual=null;
+      state.confItens=[];
+      state.confLeituras=[];
+      renderConferencia();
+      $('confResultado').innerHTML='<div class="status err">Pedido não encontrado.</div>';
+      return;
+    }
+
+    const { data:itens, error:e2 } = await client
+      .from('pedido_itens')
+      .select('produto_id,quantidade_caixas,produtos(tag,descricao)')
+      .eq('pedido_id',pedido.id);
+
+    if(e2){
+      msg('Erro ao carregar itens: '+e2.message,'err');
+      return;
+    }
+
+    const { data:leituras, error:e3 } = await client
+      .from('conferencias')
+      .select('id,pedido_id,ean_lido,produto_id,resultado,criado_em')
+      .eq('pedido_id',pedido.id)
+      .order('criado_em',{ascending:true});
+
+    if(e3){
+      msg('Erro ao carregar conferência: '+e3.message,'err');
+      return;
+    }
+
+    state.confPedidoAtual=pedido;
+    state.confItens=itens||[];
+    state.confLeituras=leituras||[];
+
+    $('confFeedback').textContent = 'Pedido aberto. Digite ou leia o primeiro EAN.';
+    $('confFeedback').className = 'status ok';
+    renderConferencia();
+  }
+
+
+
+  function mostrarOverlayCamera(tipo, codigo, tituloCustom = null){
+    const overlay = $('confCameraOverlay');
+    if(!overlay) return;
+
+    if(state.confOverlayTimer){
+      clearTimeout(state.confOverlayTimer);
+      state.confOverlayTimer = null;
+    }
+
+    overlay.classList.remove('hidden','ok','erro','ativo');
+    overlay.classList.add(tipo === 'ok' ? 'ok' : 'erro');
+
+    $('confCameraOverlayTitulo').textContent =
+      tituloCustom || (tipo === 'ok' ? 'SUCESSO' : 'ERRO');
+    $('confCameraOverlayCodigo').textContent = String(codigo || '');
+
+    // força um frame antes de animar
+    requestAnimationFrame(() => {
+      overlay.classList.add('ativo');
+    });
+
+    state.confOverlayTimer = setTimeout(() => {
+      overlay.classList.remove('ativo');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('ok','erro');
+      }, 140);
+      state.confOverlayTimer = null;
+    }, 1000);
+  }
+
+  function prepararAudioConferencia(){
+    try{
+      if(!state.confAudioCtx){
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if(AudioCtx) state.confAudioCtx = new AudioCtx();
+      }
+      if(state.confAudioCtx?.state === 'suspended'){
+        state.confAudioCtx.resume().catch(()=>{});
+      }
+    }catch(err){
+      console.warn('Áudio indisponível:', err);
+    }
+  }
+
+  function tocarSomConferencia(tipo){
+    try{
+      prepararAudioConferencia();
+      const ctx = state.confAudioCtx;
+      if(!ctx) return;
+
+      const agora = ctx.currentTime;
+
+      // Som propositalmente forte para uso em ambiente de armazém.
+      // Frequências médias/agudas têm melhor reprodução nos alto-falantes de celular.
+      const tom = (freq, inicio, duracao, volume=0.75, onda='square') => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = onda;
+        osc.frequency.setValueAtTime(freq, inicio);
+
+        gain.gain.setValueAtTime(0.0001, inicio);
+        gain.gain.linearRampToValueAtTime(volume, inicio + 0.012);
+        gain.gain.setValueAtTime(volume, Math.max(inicio + 0.013, inicio + duracao - 0.045));
+        gain.gain.exponentialRampToValueAtTime(0.0001, inicio + duracao);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(inicio);
+        osc.stop(inicio + duracao + 0.03);
+      };
+
+      if(tipo === 'ok'){
+        // Dois bipes fortes e curtos, ascendentes.
+        tom(1050, agora, 0.18, 0.78, 'square');
+        tom(1450, agora + 0.22, 0.20, 0.82, 'square');
+        if(navigator.vibrate) navigator.vibrate(80);
+
+      }else if(tipo === 'concluido'){
+        // Sequência exclusiva e mais longa para pedido 100% conferido.
+        tom(880,  agora,        0.18, 0.78, 'square');
+        tom(1175, agora + 0.20, 0.18, 0.82, 'square');
+        tom(1568, agora + 0.40, 0.22, 0.86, 'square');
+        tom(2093, agora + 0.66, 0.38, 0.90, 'square');
+        if(navigator.vibrate) navigator.vibrate([100,70,100,70,240]);
+
+      }else{
+        // Erro: frequências médias, mais audíveis em celular que graves muito baixos.
+        // Três pulsos descendentes e ásperos.
+        tom(720, agora,        0.24, 0.90, 'sawtooth');
+        tom(520, agora + 0.27, 0.26, 0.92, 'sawtooth');
+        tom(360, agora + 0.56, 0.34, 0.95, 'square');
+        if(navigator.vibrate) navigator.vibrate([180,80,260]);
+      }
+    }catch(err){
+      console.warn('Não foi possível emitir aviso sonoro:', err);
+    }
+  }
+
+  async function registrarLeituraConferencia(codigoDireto = null, viaCamera = false){
+    const pedido = state.confPedidoAtual;
+    if(!pedido){
+      $('confFeedback').textContent='Abra um pedido antes de registrar leituras.';
+      $('confFeedback').className='status err';
+      return;
+    }
+
+    const input = $('confEan');
+    const ean = codigoDireto !== null
+      ? String(codigoDireto).trim()
+      : input.value.trim();
+
+    if(!ean){
+      if(!viaCamera) input.focus();
+      return;
+    }
+
+    if(!viaCamera) input.disabled=true;
+    $('registrarLeituraBtn').disabled=true;
+
+    try{
+      // vw_produtos_ean já está carregada no state.produtos e pode conter vários EANs por TAG.
+      const cadastro = state.produtos.find(p => String(p.ean||'').trim() === ean);
+
+      let produtoId = cadastro?.produto_id || null;
+      let resultado;
+      let feedback;
+
+      if(!cadastro){
+        resultado='EAN_NAO_CADASTRADO';
+        feedback=`EAN ${ean} não cadastrado.`;
+      } else {
+        const item = state.confItens.find(i => i.produto_id === produtoId);
+
+        if(!item){
+          resultado='ITEM_NAO_PERTENCE';
+          feedback=`TAG ${cadastro.tag} não pertence a este pedido.`;
+        } else {
+          const jaLido=confContagemOk(produtoId);
+          const necessario=Number(item.quantidade_caixas)||0;
+
+          if(jaLido >= necessario){
+            resultado='QUANTIDADE_EXCEDIDA';
+            feedback=`TAG ${cadastro.tag}: quantidade já completa (${jaLido}/${necessario}).`;
+          } else {
+            resultado='OK';
+            feedback=`OK — ${cadastro.tag} (${jaLido+1}/${necessario})`;
+          }
+        }
+      }
+
+      const { data:gravada, error } = await client
+        .from('conferencias')
+        .insert({
+          pedido_id:pedido.id,
+          ean_lido:ean,
+          produto_id:produtoId,
+          resultado
+        })
+        .select('id,pedido_id,ean_lido,produto_id,resultado,criado_em')
+        .single();
+
+      if(error) throw error;
+
+      state.confLeituras.push(gravada);
+      $('confFeedback').textContent=feedback;
+      $('confFeedback').className='status '+(resultado==='OK'?'ok':'err');
+
+      if(resultado === 'OK'){
+        const totalNecessarioAgora = state.confItens.reduce(
+          (n,i)=>n+(Number(i.quantidade_caixas)||0), 0
+        );
+        const totalLidoAgora = state.confItens.reduce(
+          (n,i)=>n+confContagemOk(i.produto_id), 0
+        );
+        const concluiuAgora =
+          totalNecessarioAgora > 0 && totalLidoAgora >= totalNecessarioAgora;
+
+        tocarSomConferencia(concluiuAgora ? 'concluido' : 'ok');
+
+        if(viaCamera){
+          mostrarOverlayCamera(
+            'ok',
+            ean,
+            concluiuAgora ? 'CONFERÊNCIA COMPLETA' : 'SUCESSO'
+          );
+        }
+      }else{
+        tocarSomConferencia('erro');
+        if(viaCamera){
+          mostrarOverlayCamera('erro', ean, 'ERRO');
+        }
+      }
+
+      if(!viaCamera) input.value='';
+      renderConferencia();
+      return resultado;
+    }catch(err){
+      console.error(err);
+      $('confFeedback').textContent='Erro ao registrar leitura: '+(err.message||err);
+      $('confFeedback').className='status err';
+      tocarSomConferencia('erro');
+      if(viaCamera){
+        mostrarOverlayCamera('erro', ean, 'ERRO');
+      }
+      return null;
+    }finally{
+      if(!viaCamera){
+        input.disabled=false;
+        input.focus();
+      }
+      $('registrarLeituraBtn').disabled=false;
+    }
+  }
+
+
+
+  async function fecharCameraConferencia(){
+    if(state.confScanner){
+      try{
+        if(state.confCameraAtiva) await state.confScanner.stop();
+      }catch(err){
+        console.warn('Erro ao parar câmera:', err);
+      }
+      try{
+        await state.confScanner.clear();
+      }catch(err){
+        console.warn('Erro ao limpar câmera:', err);
+      }
+    }
+
+    state.confScanner = null;
+    state.confCameraAtiva = false;
+    state.confUltimoCodigo = '';
+    state.confCameraProcessando = false;
+    state.confCameraBloqueadaAte = 0;
+
+    if(state.confOverlayTimer){
+      clearTimeout(state.confOverlayTimer);
+      state.confOverlayTimer = null;
+    }
+
+    $('confCameraOverlay').classList.remove('ativo','ok','erro');
+    $('confCameraOverlay').classList.add('hidden');
+
+    $('confCameraBox').classList.remove('camera-fullscreen');
+    $('confCameraBox').classList.add('hidden');
+    $('confCameraCloseFloating').classList.add('hidden');
+    $('fecharCameraConfBtn').classList.add('hidden');
+    $('abrirCameraConfBtn').classList.remove('hidden');
+
+    // Volta a permitir digitação manual / leitor Bluetooth.
+    $('confEan').readOnly = false;
+    $('confEan').setAttribute('inputmode','numeric');
+  }
+
+  async function abrirCameraConferencia(){
+    prepararAudioConferencia();
+
+    if(!state.confPedidoAtual){
+      $('confFeedback').textContent = 'Abra um pedido antes de usar a câmera.';
+      $('confFeedback').className = 'status err';
+      return;
+    }
+
+    if(!window.Html5Qrcode){
+      $('confFeedback').textContent = 'Leitor por câmera não carregado. Verifique a conexão.';
+      $('confFeedback').className = 'status err';
+      return;
+    }
+
+    await fecharCameraConferencia();
+
+    $('confCameraBox').classList.remove('hidden');
+    $('confCameraBox').classList.add('camera-fullscreen');
+    $('confCameraCloseFloating').classList.remove('hidden');
+    $('abrirCameraConfBtn').classList.add('hidden');
+    $('fecharCameraConfBtn').classList.add('hidden');
+
+    // Modo câmera: bloqueia digitação e evita abertura do teclado virtual.
+    $('confEan').blur();
+    $('confEan').readOnly = true;
+    $('confEan').setAttribute('inputmode','none');
+
+    $('confFeedback').textContent = 'Solicitando acesso à câmera...';
+    $('confFeedback').className = 'status';
+
+    state.confScanner = new Html5Qrcode('confCameraReader');
+    state.confCameraProcessando = false;
+    state.confCameraBloqueadaAte = 0;
+
+    try{
+      await state.confScanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 12,
+          qrbox: { width: 300, height: 140 },
+          aspectRatio: 1.777778,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E
+          ]
+        },
+        async decodedText => {
+          const codigo = String(decodedText || '').trim();
+          if(!codigo) return;
+
+          const agora = Date.now();
+
+          // Bloqueia qualquer nova leitura enquanto a atual está sendo gravada
+          // e mantém uma pausa curta antes de liberar o próximo código.
+          if(state.confCameraProcessando || agora < state.confCameraBloqueadaAte){
+            return;
+          }
+
+          state.confCameraProcessando = true;
+          state.confUltimoCodigo = codigo;
+          state.confUltimaLeituraCamera = agora;
+
+          try{
+            await registrarLeituraConferencia(codigo, true);
+
+            // 2,5 s de intervalo entre leituras da câmera.
+            state.confCameraBloqueadaAte = Date.now() + 2500;
+          }finally{
+            state.confCameraProcessando = false;
+          }
+        },
+        () => {}
+      );
+
+      state.confCameraAtiva = true;
+      $('confFeedback').textContent = 'Câmera ativa. Aponte para o EAN da caixa.';
+      $('confFeedback').className = 'status ok';
+    }catch(err){
+      console.error('Erro ao abrir câmera:', err);
+      $('confFeedback').textContent = 'Não foi possível acessar a câmera. Verifique a permissão de câmera do navegador/app.';
+      $('confFeedback').className = 'status err';
+      await fecharCameraConferencia();
+    }
+  }
+
+  async function resetarConferencia(){
+    const pedido = state.confPedidoAtual;
+    if(!pedido){
+      $('confFeedback').textContent = 'Abra um pedido antes de resetar a conferência.';
+      $('confFeedback').className = 'status err';
+      return;
+    }
+
+    const totalLeituras = state.confLeituras.length;
+    if(totalLeituras === 0){
+      $('confFeedback').textContent = 'Este pedido ainda não possui leituras para resetar.';
+      $('confFeedback').className = 'status';
+      return;
+    }
+
+    const confirmar = confirm(
+      `Resetar a conferência do pedido ${pedido.numero_pedido}?\n\n` +
+      `${totalLeituras} leitura(s) serão apagadas e o progresso voltará para zero.\n\n` +
+      `Esta ação não altera o pedido nem o estoque.`
+    );
+    if(!confirmar) return;
+
+    $('resetarConferenciaBtn').disabled = true;
+    $('registrarLeituraBtn').disabled = true;
+    $('confEan').disabled = true;
+    $('confFeedback').textContent = 'Resetando conferência...';
+    $('confFeedback').className = 'status';
+
+    try{
+      const { error } = await client
+        .from('conferencias')
+        .delete()
+        .eq('pedido_id', pedido.id);
+
+      if(error) throw error;
+
+      state.confLeituras = [];
+      $('confEan').value = '';
+      $('confFeedback').textContent = 'Conferência resetada. O progresso voltou para zero.';
+      $('confFeedback').className = 'status ok';
+      renderConferencia();
+    }catch(err){
+      console.error(err);
+      $('confFeedback').textContent = 'Erro ao resetar conferência: ' + (err.message || err);
+      $('confFeedback').className = 'status err';
+    }finally{
+      $('resetarConferenciaBtn').disabled = false;
+      $('registrarLeituraBtn').disabled = false;
+      $('confEan').disabled = false;
+      $('confEan').focus();
+    }
+  }
+
+  $('abrirPedidoBtn').addEventListener('click', abrirPedidoConferencia);
+  $('confPedido').addEventListener('keydown', e => {
+    if(e.key === 'Enter') abrirPedidoConferencia();
+  });
+  $('registrarLeituraBtn').addEventListener('click', registrarLeituraConferencia);
+  $('resetarConferenciaBtn').addEventListener('click', resetarConferencia);
+  $('abrirCameraConfBtn').addEventListener('click', abrirCameraConferencia);
+  $('fecharCameraConfBtn').addEventListener('click', fecharCameraConferencia);
+  $('confCameraCloseFloating').addEventListener('click', fecharCameraConferencia);
+  $('confEan').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      registrarLeituraConferencia();
+    }
+  });
+
+  $('consultarTagBtn').addEventListener('click', consultarTag);
+  $('consultaTag').addEventListener('keydown', e => { if (e.key === 'Enter') consultarTag(); });
+  $('mapaRua').addEventListener('change', renderMapa);
+  $('mapaLinha').addEventListener('change', renderMapa);
+  $('recarregarMapa').addEventListener('click', async () => { await loadEstoque(); renderMapa(); });
+  $('montarPickingBtn').addEventListener('click', montarPicking);
+  $('imprimirPickingBtn').addEventListener('click', () => window.print());
+  $('pickingPedido').addEventListener('keydown', e => { if (e.key === 'Enter') montarPicking(); });
+
+  $('produtoBusca').addEventListener('input',renderProdutos);
+  $('estoqueBusca').addEventListener('input',renderEstoque);
+  $('pedidoBusca').addEventListener('input',renderPedidos);
+  $('recarregarProdutos').addEventListener('click',loadProdutos);
+  $('recarregarEstoque').addEventListener('click',loadEstoque);
+  $('recarregarPedidos').addEventListener('click',loadPedidos);
+})();
+</script>
+</body>
+</html>
